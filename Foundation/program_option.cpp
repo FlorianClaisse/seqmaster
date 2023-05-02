@@ -55,11 +55,9 @@ int program_option::parse_find_all(const std::vector<std::string_view> &argv) {
     }
     if (argv.size() == 8) {
         if (argv[6] == OUTPUT && !output) {
-            output = true;
             outputPath = std::string(argv[5]);
         }
         else if (argv[6] == ACCEPT && !accept) {
-            accept = true;
             auto result = std::from_chars(argv[5].data(), argv[5].data() + argv[5].size(), acceptValue);
             if (result.ec == std::errc::invalid_argument) return find_all_usage();
         }
@@ -74,7 +72,14 @@ int program_option::parse_find_all(const std::vector<std::string_view> &argv) {
     return find_all::start(options);
 }
 
+
 int program_option::find_all_usage() {
-    std::cout << "Erreur" << std::endl;
+    std::cout << "Find All" << std::endl
+    << "Usage :" << std::endl
+    << "\t" << INPUTA << "\tChemin vers le fichiers qui contient les contigs à trouver." << std::endl
+    << "\t" << INPUTB << "\tChemin vers le dossier qui contient les fichiers ou il faut trouver les contigs." << std::endl
+    << "\t" << OUTPUT << "\tChemin vers le dossier qui va contenir le/les fichier(s) de sortie." << std::endl
+    << "\t" << ACCEPT << "\tPermet de spécifier le pourcentage minimum pour accepter un contig comme reconnu." << std::endl;
+    return EXIT_SUCCESS;
 }
 
