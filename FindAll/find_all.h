@@ -5,7 +5,6 @@
 #ifndef CONTIG_FIND_ALL_H
 #define CONTIG_FIND_ALL_H
 
-#include <iostream>
 
 #include "../Foundation/Headers/program_option.h"
 

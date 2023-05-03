@@ -9,22 +9,10 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wunused-parameter")
 set(FLIB Foundation)
 set(FALIB FindAll)
 
-set(FSRC ${FLIB}/Directory.cpp ${FLIB}/FastaDecoder.cpp ${FLIB}/program_option.cpp FindAll/find_all.cpp FindAll/find_all.h)
-set(FASRC ${FALIB}/find_all.cpp)
+set(FSRC ${FLIB}/directory.cpp ${FLIB}/Headers/directory.h ${FLIB}/fasta.cpp ${FLIB}/Headers/fasta.h ${FLIB}/program_option.cpp ${FLIB}/Headers/program_option.h)
+set(FASRC ${FALIB}/find_all.cpp ${FALIB}/find_all.h)
 
-######################### LIBRARY ##############################
-
-add_library(foundation ${FSRC})
-add_library(findall ${FASRC})
-
-######################### EXECUTABLE ##############################
-
-add_executable(contig main.cpp)
-
-######################### LINK LIBRARY ##############################
-
-target_link_libraries(contig foundation)
-target_link_libraries(contig findall)
+add_executable(Contig main.cpp ${FSRC} ${FASRC})
 
 #EOF
 

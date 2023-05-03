@@ -39,7 +39,7 @@ int program_option::parse_find_all(const std::vector<std::string_view> &argv) {
     if (argv[0] != INPUTA || argv[2] != INPUTB) return find_all_usage();
 
     bool output(false), accept(false);
-    std::string outputPath;
+    std::string outputPath(argv[3]);
     int acceptValue(100);
     if (argv.size() >= 6) {
         if (argv[4] == OUTPUT) {
@@ -65,8 +65,14 @@ int program_option::parse_find_all(const std::vector<std::string_view> &argv) {
     }
     if (argv.size() > 8) return find_all_usage();
 
-    if (!std::filesystem::exists(argv[1])) { std::cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << std::endl; }
-    if (!std::filesystem::exists(argv[3])) { std::cout << "Le dossier d'entrée B n'exsite pas ou n'est pas accessible." << std::endl; }
+    if (!std::filesystem::exists(argv[1])) {
+        std::cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << std::endl;
+        return EXIT_FAILURE;
+    }
+    if (!std::filesystem::exists(argv[3])) {
+        std::cout << "Le dossier d'entrée B n'exsite pas ou n'est pas accessible." << std::endl;
+        return EXIT_FAILURE;
+    }
 
     FindAll options = {std::string(argv[1]), std::string(argv[3]), outputPath, acceptValue};
     return find_all::start(options);
