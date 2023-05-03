@@ -10,17 +10,9 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-bool is_fasta_file(const fs::path &filePath) {
-    return is_regular_file(filePath) && directory::have_extension(filePath, "fasta");
-}
-
-bool is_fastaline_file(const fs::path &filePath) {
-    return is_regular_file(filePath) && directory::have_extension(filePath, "fastaline");
-}
-
 int find_all::start(const program_option::FindAll &options) {
     // convert inputA to fastaline
-    if (!is_fasta_file(options.inputA)) {
+    if (!fasta::is_fasta_file(options.inputA)) {
         cout << "Le fichier : " << options.inputA <<  "n'est pas un fichier fasta." << endl;
         return EXIT_FAILURE;
     }
@@ -33,7 +25,7 @@ int find_all::start(const program_option::FindAll &options) {
 
     // Convert directory fasta to fastaline
     for (const auto &currentFile : fs::directory_iterator(options.inputB)) {
-        if (!is_fasta_file(currentFile)) continue;
+        if (!fasta::is_fasta_file(currentFile)) continue;
         if (fasta::to_fasta_line(currentFile) != EXIT_SUCCESS) return EXIT_FAILURE;
     }
 
@@ -56,23 +48,25 @@ int find_all::start(const program_option::FindAll &options) {
 
     ofstream outputFile;
     outputFile.open(options.output.string().append("/output.txt"), ios::trunc);
-    outputFile << "Filename\t";
-    for (const auto &contig_name : contigs_to_test_name) {
-        outputFile << contig_name << "\t";
-    }
-    outputFile << "\n";
+    outputFile << "Filename\t\n";
 
     for (const auto &file : filesystem::directory_iterator(options.inputB)) {
-        if (!is_fastaline_file(file)) continue;
+        if (!fasta::is_fastaline_file(file)) continue;
         map<string, bool> results = fasta::find_contigs(file.path(), contigs_to_test_value);
         outputFile << file.path().filename() << "\t";
         for (const auto &contig_value : contigs_to_test_value) {
-            outputFile << (results[contig_value] ? "V" : "X") << "\t";
+            if (results[contig_value]) {
+                int index = &contig_value - &contigs_to_test_value[0];
+                outputFile << (contigs_to_test_name[index]) << "\t";
+            }
         }
         outputFile << "\n";
     }
 
     outputFile.close();
+
+    // suppression de tous les .fastaline
+    std::system("rm *.fastaline");
 
     return EXIT_SUCCESS;
 }

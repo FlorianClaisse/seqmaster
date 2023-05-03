@@ -34,12 +34,23 @@ int fasta::to_fasta_line(const fs::path &filePath) {
             if (!first) outputFile << endl;
             outputFile << lineRead << endl;
             if (first) first = false;
-        } else outputFile << lineRead;
+        } else {
+            transform(lineRead.begin(), lineRead.end(), lineRead.begin(), ::toupper);
+            outputFile << lineRead;
+        }
     }
 
     inputFile.close();
     outputFile.close();
     return EXIT_SUCCESS;
+}
+
+bool fasta::is_fasta_file(const fs::path &filePath) {
+    return is_regular_file(filePath) && directory::have_extension(filePath, "fasta");
+}
+
+bool fasta::is_fastaline_file(const fs::path &filePath) {
+    return is_regular_file(filePath) && directory::have_extension(filePath, "fastaline");
 }
 
 bool fasta::find_contig(const fs::path &filePath, const string &contig) {
