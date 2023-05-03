@@ -63,7 +63,7 @@ std::map<std::string, bool> fasta::find_contigs(const std::filesystem::path &fil
     std::string line_read;
     while(getline(test_file, line_read)) {
         if (line_read.at(0) == '>') continue;
-        for(auto contig : contigs) {
+        for(const auto &contig : contigs) {
             if (line_read.find(contig) != std::string::npos) {
                 result[contig] = true;
             }

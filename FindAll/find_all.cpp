@@ -52,7 +52,7 @@ int find_all::start(const program_option::FindAll &options) {
     inputFile.close();
 
     std::ofstream outputFile;
-    outputFile.open(options.output.string().append("/output.txt"));
+    outputFile.open(options.output.string().append("/output.txt"), std::ios::trunc);
     outputFile << "Filename\t";
     for (const auto &contig_name : contigs_to_test_name) {
         outputFile << contig_name << "\t";
@@ -66,6 +66,7 @@ int find_all::start(const program_option::FindAll &options) {
         for (const auto &contig_value : contigs_to_test_value) {
             outputFile << (results[contig_value] ? "V" : "X") << "\t";
         }
+        outputFile << "\n";
     }
 
     outputFile.close();
