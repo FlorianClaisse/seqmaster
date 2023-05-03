@@ -7,29 +7,32 @@
 #include "Headers/fasta.h"
 #include "Headers/directory.h"
 
-int fasta::to_fasta_line(const std::filesystem::path &filePath) {
-    if (!std::filesystem::exists(filePath)) {
-        std::cout << "Path : " << filePath << ", le fichier ou le dossier n'existe pas." << std::endl;
+using namespace std;
+namespace fs = std::filesystem;
+
+int fasta::to_fasta_line(const fs::path &filePath) {
+    if (!fs::exists(filePath)) {
+        cout << "Path : " << filePath << ", le fichier ou le dossier n'existe pas." << endl;
         return EXIT_FAILURE;
     }
-    if (!std::filesystem::is_regular_file(filePath)) {
-        std::cout << "Path : " << filePath << ", n'est pas un fichier." << std::endl;
+    if (!fs::is_regular_file(filePath)) {
+        cout << "Path : " << filePath << ", n'est pas un fichier." << endl;
         return EXIT_FAILURE;
     }
 
-    std::ifstream inputFile;
+    ifstream inputFile;
     inputFile.open(filePath);
 
-    std::filesystem::path outputPath(directory::removeExtension(filePath).append(".fastaline"));
-    std::ofstream outputFile;
-    outputFile.open(outputPath, std::ios::out | std::ios::trunc);
+    fs::path outputPath(directory::removeExtension(filePath).append(".fastaline"));
+    ofstream outputFile;
+    outputFile.open(outputPath, ios::out | ios::trunc);
 
-    std::string lineRead;
+    string lineRead;
     bool first(true);
     while(getline(inputFile, lineRead)) {
         if (lineRead.at(0) == '>') {
-            if (!first) outputFile << std::endl;
-            outputFile << lineRead << std::endl;
+            if (!first) outputFile << endl;
+            outputFile << lineRead << endl;
             if (first) first = false;
         } else outputFile << lineRead;
     }
@@ -39,32 +42,32 @@ int fasta::to_fasta_line(const std::filesystem::path &filePath) {
     return EXIT_SUCCESS;
 }
 
-bool fasta::find_contig(const std::filesystem::path &filePath, const std::string &contig) {
-    std::ifstream test_file;
+bool fasta::find_contig(const fs::path &filePath, const string &contig) {
+    ifstream test_file;
     test_file.open(filePath);
 
-    std::string lineRead;
+    string lineRead;
     while(getline(test_file, lineRead)) {
         if (lineRead.at(0) == '>') continue;
-        if (lineRead.find(contig) != std::string::npos) return true;
+        if (lineRead.find(contig) != string::npos) return true;
     }
     return false;
 }
 
-std::map<std::string, bool> fasta::find_contigs(const std::filesystem::path &file_path,  const std::vector<std::string> &contigs) {
-    std::ifstream test_file;
+map<string, bool> fasta::find_contigs(const fs::path &file_path,  const vector<string> &contigs) {
+    ifstream test_file;
     test_file.open(file_path);
 
-    std::map<std::string, bool> result;
+    map<string, bool> result;
     for (const auto &contig : contigs) {
         result[contig] = false;
     }
 
-    std::string line_read;
+    string line_read;
     while(getline(test_file, line_read)) {
         if (line_read.at(0) == '>') continue;
         for(const auto &contig : contigs) {
-            if (line_read.find(contig) != std::string::npos) {
+            if (line_read.find(contig) != string::npos) {
                 result[contig] = true;
             }
         }

@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <tuple>
 #include <map>
+#include <vector>
 
 namespace fasta {
     /** Transforme un fichier fasta vers un nouveau fichier en format fastaline. */
