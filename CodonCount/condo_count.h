@@ -5,7 +5,7 @@
 #ifndef CONTIG_CONDO_COUNT_H
 #define CONTIG_CONDO_COUNT_H
 
-#include "../Foundation/Headers/program_option.h"
+#include "../Foundation/include/program_option.h"
 
 namespace codon_count {
     int start(program_option::CodonCount options);

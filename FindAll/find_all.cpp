@@ -3,8 +3,8 @@
 //
 
 #include <fstream>
-#include "../Foundation/Headers/fasta.h"
-#include "../Foundation/Headers/directory.h"
+#include "../Foundation/include/fasta.h"
+#include "../Foundation/include/directory.h"
 #include "find_all.h"
 
 using namespace std;

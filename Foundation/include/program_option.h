@@ -16,8 +16,12 @@
 // Commande option
 #define INPUTA "--inputA"
 #define INPUTB "--inputB"
+#define TYPE "--type"
 #define OUTPUT "--output"
 #define ACCEPT "--accept"
+
+#define PROTEIN "prot"
+#define NUCLEIC "nucl"
 
 namespace program_option {
     /** Permet à partir d'une ligne de commande de savoir quel programme est demandé et de l'envoyé vers le bon parser. */
@@ -40,6 +44,7 @@ namespace program_option {
         std::filesystem::path inputB;
         std::filesystem::path output;
         int accept;
+        bool nucl; /* nucl | prot */
     } FindAll;
 
     typedef struct {

@@ -5,8 +5,9 @@
 #include <filesystem>
 #include <charconv>
 
-#include "Headers/program_option.h"
+#include "include/program_option.h"
 #include "../FindAll/find_all.h"
+#include "../CodonCount/condo_count.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -32,13 +33,14 @@ int program_option::parse(int argc, char **argv) {
 int program_option::usage() {
     cout << "Usage :" << endl
     << "./Contig [program_name] ..." << endl
-    << "\t" << FINDALL << "\tProgramme qui permet à partir d'un fichier A qui contient des contigs, de trouver si il sont présent dans tous les fichiers du dossier B."
+    << "\t" << FINDALL << "\tProgramme qui permet à partir d'un fichier A (type nucl ou prot), de trouver si il sont présent dans tous les fichiers du dossier B."
+    << "\t" << CODONCOUNT << "\tProgramme qui permet à partir d'un fichier d'entrée A de compter le nombre de chaque codon pour chaque contig."
     << endl;
 
     return EXIT_SUCCESS;
 }
 
-// --inputA <path> --inputB <path> [--output <path>] [--accept <percentage>]
+// --inputA <path> --inputB <path> --type <nucl/prot> [--output <path>] [--accept <percentage>]
 int program_option::parse_find_all(const vector<string_view> &argv) {
     if (argv.size() < 4 || (argv.size() % 2) != 0) return find_all_usage();
     if (argv[0] != INPUTA || argv[2] != INPUTB) return find_all_usage();
@@ -78,8 +80,12 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
         cout << "Le dossier d'entrée B n'exsite pas ou n'est pas accessible." << endl;
         return EXIT_FAILURE;
     }
+    if (string(argv[5]) != NUCLEIC && string(argv[5]) != PROTEIN) {
+        cout << "Le type de fichier n'est pas valide." << endl;
+        return EXIT_FAILURE;
+    }
 
-    FindAll options = {string(argv[1]), string(argv[3]), outputPath, acceptValue};
+    FindAll options = {string(argv[1]), string(argv[3]), outputPath, acceptValue, string(argv[5]) == NUCLEIC ? true : false};
     return find_all::start(options);
 }
 
@@ -89,6 +95,7 @@ int program_option::find_all_usage() {
     << "Usage :" << endl
     << "\t" << INPUTA << "\tChemin vers le fichiers qui contient les contigs à trouver." << endl
     << "\t" << INPUTB << "\tChemin vers le dossier qui contient les fichiers ou il faut trouver les contigs." << endl
+    << "\t" << TYPE << "\tLe type de fichier (nucl/prot)." << endl
     << "\t" << OUTPUT << "\tChemin vers le dossier qui va contenir le/les fichier(s) de sortie." << endl
     << "\t" << ACCEPT << "\tPermet de spécifier le pourcentage minimum pour accepter un contig comme reconnu." << endl;
     return EXIT_SUCCESS;
@@ -110,5 +117,6 @@ int program_option::parse_codon_count(const vector<string_view> &argv) {
     }
 
     CodonCount options = {string(argv[1]), string(argv[3])};
+    return codon_count::start(options);
 }
 

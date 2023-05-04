@@ -2,12 +2,19 @@
 // Created by Florian Claisse on 02/05/2023.
 //
 
-#include "Headers/directory.h"
+#include "include/directory.h"
 
 using namespace std;
 
 bool directory::have_extension(const string &filePath, const string &extension) {
     return filePath.substr(filePath.find_last_of('.') + 1) == extension;
+}
+
+bool directory::have_extension(const string &filePath, const vector<string> &extensions) {
+    for (const auto &extension : extensions) {
+        if (have_extension(filePath, extension)) return true;
+    }
+    return false;
 }
 
 string directory::fileNameWithoutExtension(const string &filePath) {

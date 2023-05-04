@@ -8,11 +8,13 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wunused-parameter")
 
 set(FLIB Foundation)
 set(FALIB FindAll)
+set(CCLIB CodonCount)
 
 set(FSRC ${FLIB}/directory.cpp ${FLIB}/fasta.cpp ${FLIB}/program_option.cpp)
 set(FASRC ${FALIB}/find_all.cpp)
+set(CCSRC ${CCLIB}/condo_count.cpp)
 
-add_executable(Contig main.cpp ${FSRC} ${FASRC} CodonCount/condo_count.cpp CodonCount/condo_count.h)
+add_executable(Contig main.cpp ${FSRC} ${FASRC} ${CCLIB})
 
 #EOF
 

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "../Foundation/Headers/fasta.h"
+#include "../Foundation/include/fasta.h"
 #include "condo_count.h"
 
 using namespace std;
