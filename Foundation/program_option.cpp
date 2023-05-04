@@ -58,10 +58,10 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
     }
     if (argv.size() == 8) {
         if (argv[6] == OUTPUT && !output) {
-            outputPath = string(argv[5]);
+            outputPath = string(argv[7]);
         }
         else if (argv[6] == ACCEPT && !accept) {
-            auto result = from_chars(argv[5].data(), argv[5].data() + argv[5].size(), acceptValue);
+            auto result = from_chars(argv[7].data(), argv[7].data() + argv[7].size(), acceptValue);
             if (result.ec == errc::invalid_argument) return find_all_usage();
         }
         else return find_all_usage();

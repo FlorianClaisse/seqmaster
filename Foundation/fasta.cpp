@@ -3,6 +3,9 @@
 //
 
 #include <fstream>
+#ifdef __linux__
+#include <algorithm>
+#endif
 
 #include "Headers/fasta.h"
 #include "Headers/directory.h"
@@ -102,6 +105,7 @@ double equalSearch(const string &text, const string &pattern) {
                 break;
             }
             if (text[i + j] != pattern[j]) error++;
+            if (error >= result) break;
         }
         result = min(result, error);
         error = 0;
@@ -124,6 +128,7 @@ map<string, bool> fasta::find_contigs(const fs::path &file_path, const vector<st
     while(getline(test_file, line_read)) {
         if (line_read.at(0) == '>') continue;
         for (const auto &contig : contigs_value) {
+            if (result[contig]) continue;
             double score = equalSearch(line_read, contig);
             cout << "Pattern :" << contig << ", text: " << line_read << ", score: " << (score + maxError) << endl;
             if (score + maxError <= 100.0) result[contig] = true;
