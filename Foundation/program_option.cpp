@@ -22,6 +22,8 @@ int program_option::parse(int argc, char **argv) {
     vector<string_view> sub_args(argv + 2, argv + argc);
     if (args[1] == FINDALL) {
         return parse_find_all(sub_args);
+    } else if (args[1] == CODONCOUNT) {
+        return parse_codon_count(sub_args);
     }
 
     return usage();
@@ -90,5 +92,23 @@ int program_option::find_all_usage() {
     << "\t" << OUTPUT << "\tChemin vers le dossier qui va contenir le/les fichier(s) de sortie." << endl
     << "\t" << ACCEPT << "\tPermet de spécifier le pourcentage minimum pour accepter un contig comme reconnu." << endl;
     return EXIT_SUCCESS;
+}
+
+// --inputA <path> --output <path>
+int program_option::parse_codon_count(const vector<string_view> &argv) {
+    if (argv.size() != 4) return codon_count_usage();
+
+    if(argv[0] != INPUTA || argv[2] != OUTPUT) return codon_count_usage();
+
+    if (!fs::exists(argv[1])) {
+        cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << endl;
+        return EXIT_FAILURE;
+    }
+    if (!fs::exists(argv[3])) {
+        cout << "Le dossier d'entrée B n'exsite pas ou n'est pas accessible." << endl;
+        return EXIT_FAILURE;
+    }
+
+    CodonCount options = {string(argv[1]), string(argv[3])};
 }
 

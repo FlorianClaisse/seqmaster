@@ -18,3 +18,9 @@ sequance qui leur correspond.
 De plus il est possible de définir un pourcentage `de 0 à 100` pour determiner
 le pourcentage minimum de correspondance souhaité.
 
+## Codon Count
+
+```bash
+./Contig --codonCount --inputA <path> --output <path>
+```
+

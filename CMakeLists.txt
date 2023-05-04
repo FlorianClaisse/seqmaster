@@ -12,7 +12,7 @@ set(FALIB FindAll)
 set(FSRC ${FLIB}/directory.cpp ${FLIB}/fasta.cpp ${FLIB}/program_option.cpp)
 set(FASRC ${FALIB}/find_all.cpp)
 
-add_executable(Contig main.cpp ${FSRC} ${FASRC})
+add_executable(Contig main.cpp ${FSRC} ${FASRC} CodonCount/condo_count.cpp CodonCount/condo_count.h)
 
 #EOF
 

@@ -11,6 +11,7 @@
 
 // Program name
 #define FINDALL "--findAll"
+#define CODONCOUNT "--codonCount"
 
 // Commande option
 #define INPUTA "--inputA"
@@ -23,11 +24,15 @@ namespace program_option {
     int parse(int argc, char *argv[]);
     /** Parse la ligne de commande reconnu comme etant pour le programme find all. Une fois la commande persé correctement le programm est lancé. */
     int parse_find_all(const std::vector<std::string_view> &argv);
+    /** Parse le ligne de commande reconnu comme etant pour le programme codon count. Une fois la commande parsé correctement le program est lancé. */
+    int parse_codon_count(const std::vector<std::string_view> &argv);
 
     /** Affiche les usage pour la ligne de commande des programmes. */
     int usage();
     /** Affiche les usage pour le programme find_all. */
     int find_all_usage();
+    /** Affiche les usages pout le programme count_count */
+    int codon_count_usage();
 
     /** structure contenant les options necessaire pour le programme find all. */
     typedef struct {
@@ -36,6 +41,11 @@ namespace program_option {
         std::filesystem::path output;
         int accept;
     } FindAll;
+
+    typedef struct {
+        std::filesystem::path inputA;
+        std::filesystem::path output;
+    } CodonCount;
 }
 
 #endif //CONTIGDIFF_PROGRAM_OPTION_H
