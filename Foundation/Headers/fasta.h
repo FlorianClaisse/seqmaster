@@ -21,6 +21,8 @@ namespace fasta {
     bool find_contig(const std::filesystem::path &filePath, const std::string &contig);
     /** Dans un fichier de type fastaline permet de dire si tous les contigs sont présent ou non. */
     std::map<std::string, bool>find_contigs(const std::filesystem::path &file_path,  const std::vector<std::string> &contigs_value);
+    /** Dans un fichier de type fastaline permet de dire si tous les sont présent ou non avec un certains pourcentage d'erreur. */
+    std::map<std::string, bool>find_contigs(const std::filesystem::path &file_path, const std::vector<std::string> &contigs_value, double maxError);
 }
 
 #endif //CONTIGDIFF_FASTADECODER_H

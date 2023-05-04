@@ -45,28 +45,36 @@ int find_all::start(const program_option::FindAll &options) {
         contigs_to_test_value.push_back(value);
     }
     inputFile.close();
+    remove(fs::path(inputPath));
 
-    ofstream outputFile;
+    ofstream outputFile, currentOutputResult;
     outputFile.open(options.output.string().append("/output.txt"), ios::trunc);
     outputFile << "Filename\t\n";
 
     for (const auto &file : filesystem::directory_iterator(options.inputB)) {
         if (!fasta::is_fastaline_file(file)) continue;
-        map<string, bool> results = fasta::find_contigs(file.path(), contigs_to_test_value);
-        outputFile << file.path().filename() << "\t";
+
+        map<string, bool> results;
+        if (options.accept == 100) results = fasta::find_contigs(file.path(), contigs_to_test_value);
+        else results = fasta::find_contigs(file.path(), contigs_to_test_value, options.accept);
+
+        string fileNameWithoutExtension(directory::fileNameWithoutExtension(file.path()));
+        currentOutputResult.open(options.output.string().append("/" + fileNameWithoutExtension + "-result.fasta"), ios::trunc),
+
+        outputFile << directory::fileNameWithoutExtension(file.path()) << "\t";
         for (const auto &contig_value : contigs_to_test_value) {
             if (results[contig_value]) {
                 int index = &contig_value - &contigs_to_test_value[0];
                 outputFile << (contigs_to_test_name[index]) << "\t";
+                currentOutputResult << (contigs_to_test_name[index]) << endl << contig_value << endl;
             }
         }
         outputFile << "\n";
+        currentOutputResult.close();
+        remove(file);
     }
 
     outputFile.close();
-
-    // suppression de tous les .fastaline
-    std::system("rm *.fastaline");
 
     return EXIT_SUCCESS;
 }

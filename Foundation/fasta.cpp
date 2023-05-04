@@ -87,4 +87,50 @@ map<string, bool> fasta::find_contigs(const fs::path &file_path,  const vector<s
     return result;
 }
 
+double equalSearch(const string &text, const string &pattern) {
+    unsigned long text_size(text.size());
+    unsigned long pattern_size(pattern.size());
+    unsigned long error(0);
+    unsigned long result(pattern_size);
+
+    if (text_size < pattern_size) return 100.0;
+
+    for (unsigned long i = 0; i < text_size; i++) {
+        for (unsigned long j = 0; j < pattern_size; j++) {
+            if (i + j > text_size) {
+                error += (pattern_size - j);
+                break;
+            }
+            if (text[i + j] != pattern[j]) error++;
+        }
+        result = min(result, error);
+        error = 0;
+    }
+
+    return (((double)result) / ((double)pattern_size)) * 100.0;
+}
+
+map<string, bool> fasta::find_contigs(const fs::path &file_path, const vector<string> &contigs_value, double maxError) {
+    ifstream  test_file;
+    test_file.open(file_path);
+
+    map<string, bool> result;
+    for (const auto &contig : contigs_value) {
+        result[contig] = false;
+    }
+
+    string line_read;
+    cout << file_path << endl;
+    while(getline(test_file, line_read)) {
+        if (line_read.at(0) == '>') continue;
+        for (const auto &contig : contigs_value) {
+            double score = equalSearch(line_read, contig);
+            cout << "Pattern :" << contig << ", text: " << line_read << ", score: " << (score + maxError) << endl;
+            if (score + maxError <= 100.0) result[contig] = true;
+        }
+    }
+
+    return result;
+}
+
 
