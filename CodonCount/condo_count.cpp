@@ -33,7 +33,7 @@ void init_codon(map<string, int> &codon) {
     codon["GTG"] = 0; codon["GCG"] = 0; codon["GAG"] = 0; codon["GGG"] = 0;
 }
 
-int codon_count::start(program_option::CodonCount options) {
+int codon_count::start(program_option::CodonCount &options) {
 
     map<string, int> codon;
     init_codon(codon);

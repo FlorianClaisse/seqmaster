@@ -8,7 +8,7 @@
 #include "../Foundation/include/program_option.h"
 
 namespace codon_count {
-    int start(program_option::CodonCount options);
+    int start(program_option::CodonCount &options);
 }
 
 #endif //CONTIG_CONDO_COUNT_H

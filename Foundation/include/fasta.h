@@ -9,6 +9,7 @@
 #include <tuple>
 #include <map>
 #include <vector>
+#include <functional>
 
 namespace fasta {
     /** Transforme un fichier fasta vers un nouveau fichier en format fastaline. */
@@ -24,9 +25,9 @@ namespace fasta {
     /** Dans un fichier de type fastaline permet de dire si un contig est présent. */
     bool find_contig(const std::filesystem::path &filePath, const std::string &contig);
     /** Dans un fichier de type fastaline permet de dire si tous les contigs sont présent ou non. */
-    void find_contig(const std::filesystem::path &file_path, const std::map<std::string, std::string> &contigs, bool nucleic, void (*func)(const std::string&, const std::string&, const std::string&));
+    void find_contig(const std::filesystem::path &file_path, const std::map<std::string, std::string> &contigs, bool nucleic, std::function<void(const std::string&, const std::string&, const std::string&)> func);
     /** Dans un fichier de type fastaline permet de dire si tous les sont présent ou non avec un certains pourcentage d'erreur. */
-    void find_contigs(const std::filesystem::path &file_path, const std::map<std::string, std::string> &contigs, double maxErrorPercentage, bool nucleic, void (*func)(const std::string&, const std::string&, const std::string&, double));
+    void find_contigs(const std::filesystem::path &file_path, const std::map<std::string, std::string> &contigs, int maxErrorPercentage, bool nucleic, std::function<void(const std::string&, const std::string&, const std::string&, double)> func);
 }
 
 #endif //CONTIGDIFF_FASTADECODER_H

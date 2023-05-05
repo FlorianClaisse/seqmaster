@@ -10,18 +10,29 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int find_all::start(const program_option::FindAll &options) {
-    // convert inputA to fastaline
+int check_options(const program_option::FindAll &options) {
     if (!fasta::is_fasta_file(options.inputA)) {
         cout << "Le fichier : " << options.inputA <<  "n'est pas un fichier fasta." << endl;
         return EXIT_FAILURE;
     }
-    if (fasta::to_fasta_line(options.inputA) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     if (!fs::is_directory(options.inputB)) {
         cout << "Path : " << options.inputB << "n'est pas un dossier" << endl;
         return EXIT_FAILURE;
     }
+
+    if (!fs::is_directory(options.output)) {
+        cout << "Path : " << options.output << "n'est pas un dossier" << endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int find_all::start(const program_option::FindAll &options) {
+    if (check_options(options) != EXIT_SUCCESS) return EXIT_FAILURE;
+
+    if (fasta::to_fasta_line(options.inputA) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     // Convert directory fasta to fastaline
     for (const auto &currentFile : fs::directory_iterator(options.inputB)) {
@@ -36,39 +47,43 @@ int find_all::start(const program_option::FindAll &options) {
 
     string name;
     string value;
-    vector<string> contigs_to_test_name;
-    vector<string> contigs_to_test_value;
+    map<string, string> contigs;
     while(!inputFile.eof()) {
         getline(inputFile, name);
         getline(inputFile, value);
-        contigs_to_test_name.push_back(name);
-        contigs_to_test_value.push_back(value);
+        contigs[name] = value;
+    }
+    for (const auto &contig_value: contigs) {
+        cout << "Value : " << contig_value.first << ", name : " << contig_value.second << endl << endl;
     }
     inputFile.close();
-    remove(fs::path(inputPath));
 
-    ofstream outputFile, currentOutputResult;
+    ofstream outputFile;
     outputFile.open(options.output.string().append("/output.txt"), ios::trunc);
     outputFile << "Filename\t\n";
 
     for (const auto &file : filesystem::directory_iterator(options.inputB)) {
         if (!fasta::is_fastaline_file(file)) continue;
 
-        map<string, bool> results;
-        if (options.accept == 100) results = fasta::find_contigs(file.path(), contigs_to_test_value);
-        else results = fasta::find_contigs(file.path(), contigs_to_test_value, options.accept);
-
         string fileNameWithoutExtension(directory::fileNameWithoutExtension(file.path()));
-        currentOutputResult.open(options.output.string().append("/" + fileNameWithoutExtension + "-result.fasta"), ios::trunc),
+        ofstream currentOutputResult;
+        currentOutputResult.open(options.output.string().append("/" + fileNameWithoutExtension + "-result.fasta"), ios::trunc);
 
         outputFile << directory::fileNameWithoutExtension(file.path()) << "\t";
-        for (const auto &contig_value : contigs_to_test_value) {
-            if (results[contig_value]) {
-                int index = &contig_value - &contigs_to_test_value[0];
-                outputFile << (contigs_to_test_name[index]) << "\t";
-                currentOutputResult << (contigs_to_test_name[index]) << endl << contig_value << endl;
-            }
+
+        if (options.accept == 100) {
+            fasta::find_contig(file.path(), contigs, options.nucl, [&outputFile, &currentOutputResult](const string &nameA, const string &nameB, const string &value) -> void {
+                outputFile << nameA << "\t";
+                currentOutputResult << nameB << " -> " << nameA << endl << value << endl;
+            });
         }
+        else {
+            fasta::find_contigs(file.path(), contigs, (100 - options.accept), options.nucl, [&outputFile, &currentOutputResult](const string &nameA, const string &nameB, const string &value, double percentage) -> void {
+                outputFile << nameA << "\t";
+                currentOutputResult << nameB << " -> " << nameA << " -> " << (100.0 - percentage) << "%" << endl << value << endl;
+            });
+        }
+
         outputFile << "\n";
         currentOutputResult.close();
         remove(file);

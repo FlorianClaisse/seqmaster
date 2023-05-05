@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <tuple>
+#include <functional>
 #ifdef __linux__
 #include <algorithm>
 #endif
@@ -81,7 +82,7 @@ bool fasta::find_contig(const fs::path &filePath, const string &contig) {
     return false;
 }
 
-void fasta::find_contig(const fs::path &file_path, const map<string, string> &contigs, bool nucleic, void (*func)(const string&, const string&, const string&)) {
+void fasta::find_contig(const fs::path &file_path, const map<string, string> &contigs, bool nucleic, function<void(const string&, const string&, const string&)> func) {
     ifstream test_file;
     test_file.open(file_path);
 
@@ -96,6 +97,7 @@ void fasta::find_contig(const fs::path &file_path, const map<string, string> &co
                     else func(contig.first, name, line_read);
                     pos++;
                 }
+                pos = 0;
             }
         }
     }
@@ -123,7 +125,7 @@ void fasta::find_contig(const fs::path &file_path, const map<string, string> &co
     return (((double)result) / ((double)pattern_size)) * 100.0;
 }*/
 
-void fasta::find_contigs(const fs::path &file_path, const map<string, string> &contigs, double maxErrorPercentage, bool nucleic, void (*func)(const string&, const string&, const string&, double)) {
+void fasta::find_contigs(const fs::path &file_path, const map<string, string> &contigs, int maxErrorPercentage, bool nucleic, function<void(const string&, const string&, const string&, double)> func) {
     ifstream  test_file;
     test_file.open(file_path);
 
@@ -135,7 +137,7 @@ void fasta::find_contigs(const fs::path &file_path, const map<string, string> &c
             for (const auto &contig : contigs) {
                 // equalSearch 
                 unsigned long pattern_size(contig.second.size());
-                unsigned long maxError((unsigned long) (pattern_size * maxErrorPercentage / 100.0));
+                unsigned long maxError((unsigned long) (pattern_size * maxErrorPercentage / 100));
                 unsigned long error(0);
                 for (unsigned long i = 0; i < text_size; i++) {
                     for (unsigned long j = 0; j < pattern_size; j++) {
@@ -144,7 +146,7 @@ void fasta::find_contigs(const fs::path &file_path, const map<string, string> &c
                             break;
                         }
                         if (line_read[i + j] != contig.second[j]) error++;
-                        if (error >= maxError) break;
+                        if (error > maxError) break;
                     }
                     if (error <= maxError) {
                         if (nucleic) func(contig.first, name, contig.second, (((double)error) / ((double)pattern_size)) * 100.0);

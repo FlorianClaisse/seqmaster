@@ -42,36 +42,40 @@ int program_option::usage() {
 
 // --inputA <path> --inputB <path> --type <nucl/prot> [--output <path>] [--accept <percentage>]
 int program_option::parse_find_all(const vector<string_view> &argv) {
-    if (argv.size() < 4 || (argv.size() % 2) != 0) return find_all_usage();
+    if (argv.size() < 6 || (argv.size() % 2) != 0) return find_all_usage();
     if (argv[0] != INPUTA || argv[2] != INPUTB) return find_all_usage();
 
     bool output(false), accept(false);
     string outputPath(argv[3]);
     int acceptValue(100);
-    if (argv.size() >= 6) {
-        if (argv[4] == OUTPUT) {
+    cout << __LINE__ << endl;
+    if (argv.size() >= 8) {
+        if (argv[6] == OUTPUT) {
             output = true;
-            outputPath = string(argv[5]);
-        }
-        else if (argv[4] == ACCEPT) {
-            accept = true;
-            auto result = from_chars(argv[5].data(), argv[5].data() + argv[5].size(), acceptValue);
-            if (result.ec == errc::invalid_argument) return find_all_usage();
-        }
-        else return find_all_usage();
-    }
-    if (argv.size() == 8) {
-        if (argv[6] == OUTPUT && !output) {
             outputPath = string(argv[7]);
         }
-        else if (argv[6] == ACCEPT && !accept) {
+        else if (argv[6] == ACCEPT) {
+            accept = true;
             auto result = from_chars(argv[7].data(), argv[7].data() + argv[7].size(), acceptValue);
             if (result.ec == errc::invalid_argument) return find_all_usage();
         }
         else return find_all_usage();
+        cout << __LINE__ << endl;
     }
-    if (argv.size() > 8) return find_all_usage();
-
+    if (argv.size() == 10) {
+        cout << __LINE__ << endl;
+        if (argv[8] == OUTPUT && !output) {
+            outputPath = string(argv[9]);
+        }
+        else if (argv[8] == ACCEPT && !accept) {
+            auto result = from_chars(argv[9].data(), argv[9].data() + argv[9].size(), acceptValue);
+            if (result.ec == errc::invalid_argument) return find_all_usage();
+        }
+        else return find_all_usage();
+        cout << __LINE__ << endl;
+    }
+    if (argv.size() > 10) return find_all_usage();
+    cout << __LINE__ << endl;
     if (!fs::exists(argv[1])) {
         cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << endl;
         return EXIT_FAILURE;
@@ -85,7 +89,7 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
         return EXIT_FAILURE;
     }
 
-    FindAll options = {string(argv[1]), string(argv[3]), outputPath, acceptValue, string(argv[5]) == NUCLEIC ? true : false};
+    FindAll options = {string(argv[1]), string(argv[3]), outputPath, acceptValue, string(argv[5]) == NUCLEIC};
     return find_all::start(options);
 }
 
@@ -118,5 +122,9 @@ int program_option::parse_codon_count(const vector<string_view> &argv) {
 
     CodonCount options = {string(argv[1]), string(argv[3])};
     return codon_count::start(options);
+}
+
+int program_option::codon_count_usage() {
+    return EXIT_SUCCESS;
 }
 
