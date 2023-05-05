@@ -5,6 +5,7 @@
 #include <fstream>
 #include <tuple>
 #include <functional>
+#include <omp.h>
 #ifdef __linux__
 #include <algorithm>
 #endif
@@ -14,6 +15,13 @@
 
 using namespace std;
 namespace fs = std::filesystem;
+
+int test() {
+    #pragma omp parallel for
+    for(int idx=0;idx<100;++idx){
+    }
+    return 1;
+}
 
 int fasta::to_fasta_line(const fs::path &filePath) {
     ifstream inputFile;
@@ -91,10 +99,10 @@ void fasta::find_contig(const fs::path &file_path, const map<string, string> &co
         if (line_read.at(0) == '>') name = line_read;
         else {
             size_t pos = 0;
-            for(const auto &contig : contigs) {
-                while((pos = line_read.find(contig.second, pos)) != string::npos) {
-                    if (nucleic) func(contig.first, name, contig.second);
-                    else func(contig.first, name, line_read);
+            for(auto contig = contigs.begin(); contig != contigs.end(); ++contig) {
+                while((pos = line_read.find(contig->second, pos)) != string::npos) {
+                    if (nucleic) func(contig->first, name, contig->second);
+                    else func(contig->first, name, line_read);
                     pos++;
                 }
                 pos = 0;

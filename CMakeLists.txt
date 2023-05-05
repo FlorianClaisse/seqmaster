@@ -13,8 +13,8 @@ if(NOT TARGET OpenMP::OpenMP_CXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wunused-parameter -I/opt/homebrew/Cellar/libomp/16.0.3/include -fopenmp")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wunused-parameter -I/opt/homebrew/Cellar/libomp/16.0.3/include -Xpreprocessor -fopenmp")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xpreprocessor -fopenmp")
 
 ######################### SOURCE ##############################
 
