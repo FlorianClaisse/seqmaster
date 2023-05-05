@@ -64,7 +64,7 @@ int find_all::start(const program_option::FindAll &options) {
     outputFile.open(options.output.string().append("/output.txt"), ios::trunc);
     outputFile << "Filename\t\n";
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (const auto &file : filesystem::directory_iterator(options.inputB)) {
         cout << omp_get_thread_num() << endl;
         if (!fasta::is_fastaline_file(file)) continue;
