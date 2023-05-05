@@ -103,28 +103,6 @@ void fasta::find_contig(const fs::path &file_path, const map<string, string> &co
     }
 }
 
-/*map<string, double> equalSearch(const string &text, const string &pattern, double maxErrorPercentage) {
-    unsigned long text_size(text.size());
-    unsigned long pattern_size(pattern.size());
-    unsigned long maxError((unsigned long) (pattern_size * maxErrorPercentage / 100.0));
-    unsigned long error(0);
-
-    for (unsigned long i = 0; i < text_size; i++) {
-        for (unsigned long j = 0; j < pattern_size; j++) {
-            if (i + j > text_size) {
-                error += (pattern_size - j);
-                break;
-            }
-            if (text[i + j] != pattern[j]) error++;
-            if (error >= result) break;
-        }
-        result = min(result, error);
-        error = 0;
-    }
-
-    return (((double)result) / ((double)pattern_size)) * 100.0;
-}*/
-
 void fasta::find_contigs(const fs::path &file_path, const map<string, string> &contigs, int maxErrorPercentage, bool nucleic, function<void(const string&, const string&, const string&, double)> func) {
     ifstream  test_file;
     test_file.open(file_path);

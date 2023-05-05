@@ -3,6 +3,7 @@
 //
 
 #include <fstream>
+#include <filesystem>
 #include <omp.h>
 #include "../Foundation/include/fasta.h"
 #include "../Foundation/include/directory.h"
