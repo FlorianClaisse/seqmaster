@@ -3,9 +3,7 @@
 //
 
 #include <fstream>
-#include <tuple>
 #include <functional>
-#include <omp.h>
 #ifdef __linux__
 #include <algorithm>
 #endif
@@ -15,13 +13,6 @@
 
 using namespace std;
 namespace fs = std::filesystem;
-
-int test() {
-    #pragma omp parallel for
-    for(int idx=0;idx<100;++idx){
-    }
-    return 1;
-}
 
 int fasta::to_fasta_line(const fs::path &filePath) {
     ifstream inputFile;
@@ -72,6 +63,10 @@ bool fasta::is_fasta_file(const fs::path &filePath) {
 
     vector<string> extensions = {"fasta", "fna", "faa", "ffn", "fa", "fas"};
     return directory::have_extension(filePath, extensions);
+}
+
+bool fasta::is_result_file(const std::filesystem::path &filePath) {
+    return is_regular_file(filePath) && (filePath.string().find("-result.fasta") != string::npos);
 }
 
 bool fasta::is_fastaline_file(const fs::path &filePath) {

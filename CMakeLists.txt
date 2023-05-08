@@ -11,14 +11,22 @@ project(Contig)
      #       PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
 
 #endif()
+if (APPLE)
+    include_directories(/opt/homebrew/Cellar/libomp/16.0.3/include)
+    find_library(OPENMP_LIB libomp.dylib /opt/homebrew/Cellar/libomp/16.0.3/lib/)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
+else()
+    find_package(OpenMP REQUIRED)
+    set(OPENMP_LIB OpenMP::OpenMP_CXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif ()
 
-include_directories(/opt/homebrew/Cellar/libomp/16.0.3/include)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
+
 #find_library(OPENMP_LIB )
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS} -Xpreprocessor -fopenmp")
-find_library(OPENMP_LIB libomp.dylib /opt/homebrew/Cellar/libomp/16.0.3/lib/)
+
 ######################### SOURCE ##############################
 
 set(FLIB Foundation)

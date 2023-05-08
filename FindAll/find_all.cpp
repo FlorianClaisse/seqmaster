@@ -64,32 +64,36 @@ int find_all::start(const program_option::FindAll &options) {
     outputFile.open(options.output.string().append("/output.txt"), ios::trunc);
     outputFile << "Filename\t\n";
 
-    for (const auto &file : filesystem::directory_iterator(options.inputB)) {
-
+    long nb_files = distance(fs::directory_iterator(options.inputB), fs::directory_iterator{}); // C++17
+    cout << "Nb files : " << nb_files << endl;
+    //for (const auto &file : filesystem::directory_iterator(options.inputB)) {
+#pragma omp parallel for default(none) num_threads(8) shared(nb_files, contigs, options)
+    for (long i = 0; i < nb_files; i++) {
+        fs::directory_entry file = *next(fs::directory_iterator(options.inputB), i);
         if (!fasta::is_fastaline_file(file)) continue;
+        if (fasta::is_result_file(file)) continue;
+        printf("File : %s, Threads = %d, i = %ld\n", file.path().c_str(), omp_get_thread_num(), i);
 
         string fileNameWithoutExtension(directory::fileNameWithoutExtension(file.path()));
         ofstream currentOutputResult;
         currentOutputResult.open(options.output.string().append("/" + fileNameWithoutExtension + "-result.fasta"), ios::trunc);
-
-        outputFile << directory::fileNameWithoutExtension(file.path()) << "\t";
+        //outputFile << directory::fileNameWithoutExtension(file.path()) << "\t";
 
         if (options.accept == 100) {
-            fasta::find_contig(file.path(), contigs, options.nucl, [&outputFile, &currentOutputResult](const string &nameA, const string &nameB, const string &value) -> void {
-                outputFile << nameA << "\t";
+            fasta::find_contig(file.path(), contigs, options.nucl, [/*&outputFile,*/ &currentOutputResult](const string &nameA, const string &nameB, const string &value) -> void {
+                //outputFile << nameA << "\t";
                 currentOutputResult << nameB << " -> " << nameA << endl << value << endl;
             });
         }
         else {
-            fasta::find_contigs(file.path(), contigs, (100 - options.accept), options.nucl, [&outputFile, &currentOutputResult](const string &nameA, const string &nameB, const string &value, double percentage) -> void {
-                outputFile << nameA << "\t";
+            fasta::find_contigs(file.path(), contigs, (100 - options.accept), options.nucl, [/*&outputFile, */&currentOutputResult](const string &nameA, const string &nameB, const string &value, double percentage) -> void {
+                //outputFile << nameA << "\t";
                 currentOutputResult << nameB << " -> " << nameA << " -> " << (100.0 - percentage) << "%" << endl << value << endl;
             });
         }
 
-        outputFile << "\n";
+        //outputFile << "\n";
         currentOutputResult.close();
-        remove(file);
     }
 
     outputFile.close();

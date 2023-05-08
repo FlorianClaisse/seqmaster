@@ -18,6 +18,8 @@ sequance qui leur correspond.
 De plus il est possible de définir un pourcentage `de 0 à 100` pour determiner
 le pourcentage minimum de correspondance souhaité.
 
+IMPORTANT ne pas lancer le programme dans un dossier qui contient deja des fichier de resultat.
+
 ## Codon Count
 
 ```bash

@@ -19,6 +19,8 @@ namespace fasta {
 
     /** Permet de savoir si un fichier est de type fasta. */
     bool is_fasta_file(const std::filesystem::path &filePath);
+    /** Permet de savoir si un fichier est de type result. */
+    bool is_result_file(const std::filesystem::path &filePath);
     /** Permet de savoir si un fichier est de type fastaline. */
     bool is_fastaline_file(const std::filesystem::path &filePath);
 
