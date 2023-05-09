@@ -48,23 +48,29 @@ int codon_count::start(program_option::CodonCount &options) {
 
     ifstream inputFile(directory::removeExtension(options.inputA).append(".fastaline"));
 
-    string lineRead;
+    ofstream outputFile(options.output.string().append("/output.txt"), ios::trunc);
+    outputFile << "Contig Name\tCodon\tNumber\tPercentage\n";
+
+    string lineRead, prot_name;
+    unsigned long total(0);
     while(getline(inputFile, lineRead)) {
-        if (lineRead.at(0) == '>') {
-            cout << "Prot : " << lineRead << endl;
-            continue;
-        }
-        for (unsigned long i = 0; i < lineRead.size(); i += 3) {
-            string sub = lineRead.substr(i, 3);
-            if (codon.find(sub) != codon.end()) {
-                codon[sub]++;
+        if (lineRead.at(0) == '>') prot_name = lineRead;
+        else {
+            for (unsigned long i = 0; i < lineRead.size(); i += 3) {
+                string sub = lineRead.substr(i, 3);
+                if (codon.find(sub) != codon.end()) {
+                    codon[sub]++;
+                    total++;
+                } else return EXIT_FAILURE;
             }
+
+            for (const auto &key: codon) {
+                if (key.second == 0) continue;
+                outputFile << prot_name << "\t" << key.first << "\t" << key.second << "\t" << (((double)key.second / (double) total) * 100) << "%\n";
+            }
+            total = 0;
+            init_codon(codon);
         }
-        for (const auto &key : codon) {
-            if (key.second == 0) continue;
-            cout << "Name : " << key.first << ", value : " << key.second << endl;
-        }
-        init_codon(codon);
     }
 
     return EXIT_SUCCESS;
