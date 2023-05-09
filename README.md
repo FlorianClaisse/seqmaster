@@ -3,25 +3,64 @@
 ## Find All
 
 ```bash
-./Contig --findall --inputA <path> --inputB <path> --type <nucl/prot > [--output <path>] [--accept <percentage>]
+./Contig --findall --inputA <path> --inputB <path> --type <nucl/prot> --output <path> [--accept <percentage>] [--threads <number>]
 ```
 
-Permet à partir d'un fichier d'entrée au format fasta de déterminer qu'elles
-Contig sont présent dans chaque fichier du dossier B.
+À partir d'un fichier d'entrée au format fasta détermine qu'elles Contig sont présent dans chaque fichier du dossier B.
 
-Si le contig est présent
-alors dans un fichier de sortie `output.txt` se trouvera le nom du fichier
-concerné suis des contigs du fichier A trouvé. Puis un fichier
-`<filename>-result.fasta` va se trouver le nom des contigs trouvé ainsi que la
-sequance qui leur correspond.
+Au niveau des paramètres de la ligne de commande, il y a :
+- `--inputA` Le chemin vers le __fichier__ (format fasta) contenant les contigs à trouver. 
+- `--inputB` Le chemin vers le __dossier__ ou se trouve les fichiers à tester.
+- `--type` Le type d'élément contenue dans les fichiers (nucl ou prot).
+- `--output` Le chemin vers le __dossier__ qui va contenir les fichiers de sortie.
+- `--accept` Le pourcentage d'acceptation pour qu'un élément soit considéré comme reconnu par defaut il vaut 100%.
+- `--threads` Le nombre de threads que le programme peut utiliser par défaut il vaut 4.
 
-De plus il est possible de définir un pourcentage `de 0 à 100` pour determiner
-le pourcentage minimum de correspondance souhaité.
+À partir du moment ou un Contig qui se trouve dans le fichier A est reconnu dans un fichier du dossier B,
+alors dans le fichier `output.txt` va se trouver à la suite du nom du fichier de B en question le nom du contig
+de A trouvé suivi du pourcentage si `--accept` a était donné dans la ligne de commande.
+Le fichier `output.txt` est au format tabulé.
 
-IMPORTANT ne pas lancer le programme dans un dossier qui contient deja des fichier de resultat.
+En plus du fichier `output.txt` pour chaque fichier du dossier d'entrée B un fichier `nomfichier-result.fasta` 
+est généré. Ce fichier se trouve dans le dossier d'output et contient les contigs trouvé dans le fichier de B 
+correspondant au format `nom-contig-B -> nom-contig-A -> pourcentage`. Le pourcentage n'est présent que dans le 
+cas ou il est spécifié en option de la ligne de commande. Puis un retour ligne est effectué afin de placer le bout
+de contig reconnu. Dans le cas ou le pourcentage est different de 100, si `--type` vaut `nucl` c'est le bout du contig
+présent dans B qui est donné sinon si `--type` vaut `prot` alors c'est toute la proteine de B qui est donné.
+
+### Exemple d'output
+- `output.txt`
+```text
+Filename
+file1.fa    nameA -> percentage     name2A -> percentage
+file2.fa
+file3.fa    name23A -> percentage
+```
+- `file1-result.fasta`
+```text
+>Contig_1_B -> nameA -> percentage
+contigValue
+>Contig_5_B -> name2A -> percentage
+```
 
 ## Codon Count
 
 ```bash
 ./Contig --codonCount --inputA <path> --output <path>
+```
+
+À partir d'un fichier d'entrée, le programme va compter le nombre de chaque codon présent dans chaque
+Contig du fichier d'entrée.
+
+Le résultat de ce calcule se trouvera dans un fichier `output.txt` au format tabulé 
+
+### Exemple d'output
+- `output.txt`
+```text
+Contig Name     Codon   Number  Percentage
+>Contig_1       ATG     3       25%
+>Contig_1       CTG     6       50%
+>Contig_1       ATT     3       25%
+>Contig_2       AAA     12      50%
+>Contig_2       TGT     12      50%
 ```
