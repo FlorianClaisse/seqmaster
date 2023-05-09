@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "../Foundation/include/fasta.h"
+#include "../Foundation/include/directory.h"
 #include "condo_count.h"
 
 using namespace std;
@@ -22,7 +23,7 @@ void init_codon(map<string, int> &codon) {
     codon["CTA"] = 0; codon["CCA"] = 0; codon["CAA"] = 0; codon["CGA"] = 0;
     codon["CTG"] = 0; codon["CCG"] = 0; codon["CAG"] = 0; codon["CGG"] = 0;
 
-    codon["ATT"] = 0; codon["ACU"] = 0; codon["AAT"] = 0; codon["AGT"] = 0;
+    codon["ATT"] = 0; codon["ACT"] = 0; codon["AAT"] = 0; codon["AGT"] = 0;
     codon["ATC"] = 0; codon["ACC"] = 0; codon["AAC"] = 0; codon["AGC"] = 0;
     codon["ATA"] = 0; codon["ACA"] = 0; codon["AAA"] = 0; codon["AGA"] = 0;
     codon["ATG"] = 0; codon["ACG"] = 0; codon["AAG"] = 0; codon["AGG"] = 0;
@@ -45,17 +46,26 @@ int codon_count::start(program_option::CodonCount &options) {
 
     if (fasta::to_fasta_line(options.inputA) == EXIT_FAILURE) return EXIT_FAILURE;
 
-    ifstream inputFile;
-    inputFile.open(options.inputA);
+    ifstream inputFile(directory::removeExtension(options.inputA).append(".fastaline"));
 
     string lineRead;
     while(getline(inputFile, lineRead)) {
-        if (lineRead.at(0) == '>') continue;
-        for (unsigned long i = 0; i < lineRead.size(); i += 3) {
-            codon[lineRead.substr(i, 3)]++;
+        if (lineRead.at(0) == '>') {
+            cout << "Prot : " << lineRead << endl;
+            continue;
         }
+        for (unsigned long i = 0; i < lineRead.size(); i += 3) {
+            string sub = lineRead.substr(i, 3);
+            if (codon.find(sub) != codon.end()) {
+                codon[sub]++;
+            }
+        }
+        for (const auto &key : codon) {
+            if (key.second == 0) continue;
+            cout << "Name : " << key.first << ", value : " << key.second << endl;
+        }
+        init_codon(codon);
     }
-
 
     return EXIT_SUCCESS;
 }

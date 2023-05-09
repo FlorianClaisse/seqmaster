@@ -11,9 +11,10 @@
 
 // Program name
 #define FINDALL "--findall"
-#define CODONCOUNT "--codonCount"
+#define CODONCOUNT "--codoncount"
 
 // Commande option
+#define THREADS "--threads"
 #define INPUTA "--inputA"
 #define INPUTB "--inputB"
 #define TYPE "--type"
@@ -45,6 +46,7 @@ namespace program_option {
         std::filesystem::path output;
         int accept;
         bool nucl; /* nucl | prot */
+        int nb_thread;
     } FindAll;
 
     typedef struct {

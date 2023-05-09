@@ -52,20 +52,16 @@ int generate_output(const program_option::FindAll &options) {
     for (const auto &currentPath : fs::directory_iterator(options.output)) {
         if (!fasta::is_result_file(currentPath)) continue;
         outputFile << currentPath.path().filename() << "\t";
-        ifstream currentFile(currentPath);
+        ifstream currentFile(currentPath.path());
         while(getline(currentFile, lineRead)) {
             if (lineRead.empty()) continue;
             if (lineRead.at(0) == '>') {
                 size_t pos, second_pos;
                 if ((pos = lineRead.find("->")) != string::npos) {
-                    second_pos = lineRead.find_last_of('>');
-                    cout << "Line : " << lineRead << ", pos : " << pos << ", last : " << second_pos;
-                    if (second_pos == (pos + 3)) outputFile << lineRead.substr(pos + 3);
-                    else outputFile << lineRead.substr(pos + 3, second_pos);
+                    outputFile << lineRead.substr(pos + 3) << "\t";
                 } else return EXIT_FAILURE;
             }
         }
-
         outputFile << "\n";
     }
 
@@ -91,14 +87,10 @@ int find_all::start(const program_option::FindAll &options) {
     }
     inputFile.close();
 
-    for (const auto &contig_value: contigs) {
-        cout << "Value : " << contig_value.first << ", name : " << contig_value.second << endl << endl;
-    }
-
     long nb_files = distance(fs::directory_iterator(options.inputB), fs::directory_iterator{}); // C++17
     cout << "Nb files : " << nb_files << endl;
 
-#pragma omp parallel for default(none) shared(nb_files, contigs, options)
+#pragma omp parallel for default(none) shared(nb_files, contigs, options) num_threads(options.nb_thread)
     for (long i = 0; i < nb_files; i++) {
         fs::directory_entry file = *next(fs::directory_iterator(options.inputB), i);
         if (!fasta::is_fastaline_file(file)) continue;

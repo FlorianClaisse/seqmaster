@@ -33,25 +33,40 @@ int program_option::parse(int argc, char **argv) {
 int program_option::usage() {
     cout << "Usage :" << endl
     << "./Contig [program_name] ..." << endl
-    << "\t" << FINDALL << "\tProgramme qui permet à partir d'un fichier A (type nucl ou prot), de trouver si il sont présent dans tous les fichiers du dossier B."
-    << "\t" << CODONCOUNT << "\tProgramme qui permet à partir d'un fichier d'entrée A de compter le nombre de chaque codon pour chaque contig."
-    << endl;
+    << "\t" << FINDALL << "\tProgramme qui permet à partir d'un fichier A (type nucl ou prot), de trouver si il sont présent dans tous les fichiers du dossier B.\n"
+    << "\t" << CODONCOUNT << "\tProgramme qui permet à partir d'un fichier d'entrée A de compter le nombre de chaque codon pour chaque contig.\n";
 
     return EXIT_SUCCESS;
 }
 
-// --inputA <path> --inputB <path> --type <nucl/prot> --output <path> [--accept <percentage>]
+// --inputA <path> --inputB <path> --type <nucl/prot> --output <path> [--accept <percentage>] [--threads <value>]
 int program_option::parse_find_all(const vector<string_view> &argv) {
     if (argv.size() < 8 || (argv.size() % 2) != 0) return find_all_usage();
     if (argv[0] != INPUTA || argv[2] != INPUTB || argv[4] != TYPE || argv[6] != OUTPUT) return find_all_usage();
-    ::printf("%d\n", __LINE__);
-    int acceptValue(100);
-    if (argv.size() == 10 && argv[8] == ACCEPT) {
-        auto result = from_chars(argv[9].data(), argv[9].data() + argv[9].size(), acceptValue);
-        if (result.ec == errc::invalid_argument) return find_all_usage();
-    }
 
-    if (argv.size() > 10) return find_all_usage();
+    bool accept, thread;
+    int acceptValue(100), threads(4);
+    if (argv.size() >= 10 && argv.size() <= 12) {
+        if (argv[8] == ACCEPT) {
+            accept = true;
+            auto result = from_chars(argv[9].data(), argv[9].data() + argv[9].size(), acceptValue);
+            if (result.ec == errc::invalid_argument) return find_all_usage();
+        } else if (argv[8] == THREADS) {
+            thread = true;
+            auto result = from_chars(argv[9].data(), argv[9].data() + argv[9].size(), acceptValue);
+            if (result.ec == errc::invalid_argument) return find_all_usage();
+        } else return find_all_usage();
+    }
+    if (argv.size() == 12) {
+        if (argv[10] == ACCEPT && !accept) {
+            auto result = from_chars(argv[11].data(), argv[11].data() + argv[11].size(), threads);
+            if (result.ec == errc::invalid_argument) return find_all_usage();
+        } else if (argv[10] == THREADS && !thread) {
+            auto result = from_chars(argv[11].data(), argv[11].data() + argv[11].size(), threads);
+            if (result.ec == errc::invalid_argument) return find_all_usage();
+        } else return find_all_usage();
+    }
+    if (argv.size() > 12) return find_all_usage();
 
     if (!fs::exists(argv[1])) {
         cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << endl;
@@ -73,7 +88,7 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
         return EXIT_FAILURE;
     }
 
-    FindAll options = {string(argv[1]), string(argv[3]), string(argv[7]), acceptValue, string(argv[5]) == NUCLEIC};
+    FindAll options = {string(argv[1]), string(argv[3]), string(argv[7]), acceptValue, string(argv[5]) == NUCLEIC, threads};
     return find_all::start(options);
 }
 
@@ -81,12 +96,13 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
 int program_option::find_all_usage() {
     cout << "Find All" << endl
     << "Usage :" << endl
-    << "./Contig " << FINDALL << " " << INPUTA << " <path> " << INPUTB << " <path> " << TYPE << " nucl/prot " << OUTPUT << " <path> " << "[" << ACCEPT << " <percentage>" << "]\n\n"
+    << "./Contig " << FINDALL << " " << INPUTA << " <path> " << INPUTB << " <path> " << TYPE << " nucl/prot " << OUTPUT << " <path> " << "[" << ACCEPT << " <percentage>" << "]" << " [" << THREADS << " <value>] \n\n"
     << "\t" << INPUTA << "\tChemin vers le fichiers qui contient les contigs à trouver.\n\n"
     << "\t" << INPUTB << "\tChemin vers le dossier qui contient les fichiers ou il faut trouver les contigs.\n\n"
     << "\t" << TYPE << "\t\tLe type de fichier (nucl/prot).\n\n"
     << "\t" << OUTPUT << "\tChemin vers le dossier qui va contenir le(s) fichier(s) de sortie.\n\n"
-    << "\t" << ACCEPT << "\tPermet de spécifier le pourcentage minimum pour accepter un contig comme reconnu.\n\n";
+    << "\t" << ACCEPT << "\tPermet de spécifier le pourcentage minimum pour accepter un contig comme reconnu.\n\n"
+    << "\t" << THREADS << "\tDéfinit le nombre de threads que le programme peut utiliser\n\t\t\t(Default = 4)\n";
     return EXIT_SUCCESS;
 }
 
