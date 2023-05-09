@@ -18,9 +18,7 @@ int fasta::to_fasta_line(const fs::path &filePath) {
     ifstream inputFile;
     inputFile.open(filePath);
 
-    fs::path outputPath(directory::removeExtension(filePath).append(".fastaline"));
-    ofstream outputFile;
-    outputFile.open(outputPath, ios::trunc);
+    ofstream outputFile(directory::removeExtension(filePath).append(".fastaline"), ios::trunc);
 
     string lineRead;
     bool first(true);
@@ -41,13 +39,11 @@ int fasta::to_fasta_line(const fs::path &filePath) {
 }
 
 map<string, string> fasta::decode_fastaline(const fs::path &filePath) {
-    ifstream inputFile;
-    inputFile.open(filePath);
+    ifstream inputFile(filePath);
 
     map<string, string> result;
 
-    string contig;
-    string sequence;
+    string contig, sequence;
     while(!inputFile.eof()) {
         getline(inputFile, contig);
         getline(inputFile, sequence);
@@ -74,8 +70,7 @@ bool fasta::is_fastaline_file(const fs::path &filePath) {
 }
 
 bool fasta::find_contig(const fs::path &filePath, const string &contig) {
-    ifstream test_file;
-    test_file.open(filePath);
+    ifstream test_file(filePath);
 
     string lineRead;
     while(getline(test_file, lineRead)) {
@@ -85,19 +80,19 @@ bool fasta::find_contig(const fs::path &filePath, const string &contig) {
     return false;
 }
 
+// 100%
 void fasta::find_contig(const fs::path &file_path, const map<string, string> &contigs, bool nucleic, function<void(const string&, const string&, const string&)> func) {
-    ifstream test_file;
-    test_file.open(file_path);
+    ifstream test_file(file_path);
 
     string line_read, name;
     while(getline(test_file, line_read)) {
         if (line_read.at(0) == '>') name = line_read;
         else {
             size_t pos = 0;
-            for(auto contig = contigs.begin(); contig != contigs.end(); ++contig) {
-                while((pos = line_read.find(contig->second, pos)) != string::npos) {
-                    if (nucleic) func(contig->first, name, contig->second);
-                    else func(contig->first, name, line_read);
+            for(const auto & contig : contigs) {
+                while((pos = line_read.find(contig.second, pos)) != string::npos) {
+                    if (nucleic) func(contig.first, name, contig.second);
+                    else func(contig.first, name, line_read);
                     pos++;
                 }
                 pos = 0;
@@ -106,9 +101,9 @@ void fasta::find_contig(const fs::path &file_path, const map<string, string> &co
     }
 }
 
+// < 100%
 void fasta::find_contigs(const fs::path &file_path, const map<string, string> &contigs, int maxErrorPercentage, bool nucleic, function<void(const string&, const string&, const string&, double)> func) {
-    ifstream  test_file;
-    test_file.open(file_path);
+    ifstream  test_file(file_path);
 
     string line_read, name;
     while(getline(test_file, line_read)) {
@@ -130,7 +125,7 @@ void fasta::find_contigs(const fs::path &file_path, const map<string, string> &c
                         if (error > maxError) break;
                     }
                     if (error <= maxError) {
-                        if (nucleic) func(contig.first, name, contig.second, (((double)error) / ((double)pattern_size)) * 100.0);
+                        if (nucleic) func(contig.first, name, line_read.substr(i, pattern_size), (((double)error) / ((double)pattern_size)) * 100.0);
                         else func(contig.first, name, line_read, (((double)error) / ((double)pattern_size)) * 100.0);
                     }
                     error = 0;

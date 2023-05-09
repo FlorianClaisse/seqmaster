@@ -3,7 +3,7 @@
 ## Find All
 
 ```bash
-./Contig --findAll --inputA <path> --inputB <path> --type <nucl/prot > [--output <path>] [--accept <percentage>]
+./Contig --findall --inputA <path> --inputB <path> --type <nucl/prot > [--output <path>] [--accept <percentage>]
 ```
 
 Permet à partir d'un fichier d'entrée au format fasta de déterminer qu'elles

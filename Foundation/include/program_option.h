@@ -10,7 +10,7 @@
 #include <filesystem>
 
 // Program name
-#define FINDALL "--findAll"
+#define FINDALL "--findall"
 #define CODONCOUNT "--codonCount"
 
 // Commande option
