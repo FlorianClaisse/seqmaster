@@ -58,6 +58,13 @@ namespace program_option {
         std::filesystem::path inputA;
         std::filesystem::path output;
     } CodonCount;
+
+    typedef struct {
+        std::filesystem::path inputA;
+        std::filesystem::path inputB;
+        std::filesystem::path output;
+        int threads;
+    } ContigDiff;
 }
 
 #endif //CONTIGDIFF_PROGRAM_OPTION_H

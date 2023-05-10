@@ -32,12 +32,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(FLIB Foundation)
 set(FALIB FindAll)
 set(CCLIB CodonCount)
+set(CDLIB ContigDiff)
 
 set(FSRC ${FLIB}/directory.cpp ${FLIB}/fasta.cpp ${FLIB}/program_option.cpp)
 set(FASRC ${FALIB}/find_all.cpp)
 set(CCSRC ${CCLIB}/condo_count.cpp)
+set(CDSRC ${CDLIB}/contig_diff.cpp)
 
-add_executable(Contig main.cpp ${FSRC} ${FASRC} ${CCSRC})
+add_executable(Contig main.cpp ${FSRC} ${FASRC} ${CCSRC} ${CDSRC})
 
 target_link_libraries(Contig LINK_PUBLIC ${OPENMP_LIB})
 

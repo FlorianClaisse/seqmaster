@@ -8,9 +8,15 @@
 #include "include/program_option.h"
 #include "../FindAll/find_all.h"
 #include "../CodonCount/condo_count.h"
+#include "../ContigDiff/contig_diff.h"
 
 using namespace std;
 namespace fs = std::filesystem;
+
+int pathDosentExists(const string_view &path) {
+    cout << "Path : " << path << " n'existe pas ou n'est pas accessible.\n" ;
+    return EXIT_FAILURE;
+}
 
 // ./Contig [program_name] ...
 int program_option::parse(int argc, char **argv) {
@@ -55,13 +61,13 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
             if (result.ec == errc::invalid_argument) return find_all_usage();
         } else if (argv[8] == THREADS) {
             thread = true;
-            auto result = from_chars(argv[9].data(), argv[9].data() + argv[9].size(), acceptValue);
+            auto result = from_chars(argv[9].data(), argv[9].data() + argv[9].size(), threads);
             if (result.ec == errc::invalid_argument) return find_all_usage();
         } else return find_all_usage();
     }
     if (argv.size() == 12) {
         if (argv[10] == ACCEPT && !accept) {
-            auto result = from_chars(argv[11].data(), argv[11].data() + argv[11].size(), threads);
+            auto result = from_chars(argv[11].data(), argv[11].data() + argv[11].size(), acceptValue);
             if (result.ec == errc::invalid_argument) return find_all_usage();
         } else if (argv[10] == THREADS && !thread) {
             auto result = from_chars(argv[11].data(), argv[11].data() + argv[11].size(), threads);
@@ -70,25 +76,16 @@ int program_option::parse_find_all(const vector<string_view> &argv) {
     }
     if (argv.size() > 12) return find_all_usage();
 
-    if (!fs::exists(argv[1])) {
-        cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << endl;
-        return EXIT_FAILURE;
-    }
+    if (!fs::exists(argv[1])) return pathDosentExists(argv[1]);
 
-    if (!fs::exists(argv[3])) {
-        cout << "Le dossier d'entrée B n'exsite pas ou n'est pas accessible." << endl;
-        return EXIT_FAILURE;
-    }
+    if (!fs::exists(argv[3])) return pathDosentExists(argv[3]);
 
     if (string(argv[5]) != NUCLEIC && string(argv[5]) != PROTEIN) {
         cout << "Le type de fichier n'est pas valide." << endl;
         return EXIT_FAILURE;
     }
 
-    if (!fs::exists(argv[7])) {
-        cout << "Le dossier de sortie n'existe pas ou n'est pas accessible." << endl;
-        return EXIT_FAILURE;
-    }
+    if (!fs::exists(argv[7])) return pathDosentExists(argv[7]);
 
     FindAll options = {string(argv[1]), string(argv[3]), string(argv[7]), acceptValue, string(argv[5]) == NUCLEIC, threads};
     return find_all::start(options);
@@ -114,14 +111,9 @@ int program_option::parse_codon_count(const vector<string_view> &argv) {
 
     if(argv[0] != INPUTA || argv[2] != OUTPUT) return codon_count_usage();
 
-    if (!fs::exists(argv[1])) {
-        cout << "Le fichier d'entrée A n'existe pas ou n'est pas accessible." << endl;
-        return EXIT_FAILURE;
-    }
-    if (!fs::exists(argv[3])) {
-        cout << "Le dossier d'entrée B n'exsite pas ou n'est pas accessible." << endl;
-        return EXIT_FAILURE;
-    }
+    if (!fs::exists(argv[1])) return pathDosentExists(argv[1]);
+
+    if (!fs::exists(argv[3])) return pathDosentExists(argv[3]);
 
     CodonCount options = {string(argv[1]), string(argv[3])};
     return codon_count::start(options);
@@ -138,7 +130,25 @@ int program_option::codon_count_usage() {
 
 // --inputA <path> --inputB <path> --output <path> [--threads <number>]
 int program_option::parse_contig_diff(const std::vector<std::string_view> &argv) {
-    return EXIT_SUCCESS;
+    if (argv.size() < 6 || (argv.size() % 2) != 0) return contig_diff_usage();
+    if (argv[0] != INPUTA || argv[2] != INPUTB || argv[4] != OUTPUT) return contig_diff_usage();
+
+    int threads(4);
+    if (argv.size() == 8) {
+        if (argv[6] == THREADS) {
+            auto result = from_chars(argv[7].data(), argv[7].data() + argv[7].size(), threads);
+            if (result.ec == errc::invalid_argument) return contig_diff_usage();
+        } else return contig_diff_usage();
+    } else if (argv.size() > 8) return contig_diff_usage();
+
+    if (!fs::exists(argv[1])) return pathDosentExists(argv[1]);
+
+    if (!fs::exists(argv[3])) return pathDosentExists(argv[3]);
+
+    if (!fs::exists(argv[5])) return pathDosentExists(argv[5]);
+
+    program_option::ContigDiff options = {string(argv[1]), string(argv[3]), string(argv[5]), threads};
+    return contig_diff::start(options);
 }
 
 int program_option::contig_diff_usage() {
