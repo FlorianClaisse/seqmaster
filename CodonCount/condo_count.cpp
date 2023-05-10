@@ -36,8 +36,9 @@ void init_codon(map<string, int> &codon) {
 
 int codon_count::start(program_option::CodonCount &options) {
 
-    map<string, int> codon;
+    map<string, int> codon, total_codon;
     init_codon(codon);
+    init_codon(total_codon);
 
     if (!fasta::is_fasta_file(options.inputA)) {
         cout << "Path : " << options.inputA << "n'est pas un fichier fasta" << endl;
@@ -52,7 +53,7 @@ int codon_count::start(program_option::CodonCount &options) {
     outputFile << "Contig Name\tCodon\tNumber\tPercentage\n";
 
     string lineRead, prot_name;
-    unsigned long total(0);
+    unsigned long total(0), all_total(0);
     while(getline(inputFile, lineRead)) {
         if (lineRead.at(0) == '>') prot_name = lineRead;
         else {
@@ -60,8 +61,12 @@ int codon_count::start(program_option::CodonCount &options) {
                 string sub = lineRead.substr(i, 3);
                 if (codon.find(sub) != codon.end()) {
                     codon[sub]++;
+                    total_codon[sub]++;
                     total++;
-                } else return EXIT_FAILURE;
+                    all_total++;
+                } else {
+					cout << "Contig : " << prot_name << ", codon : " << sub << " unknown\n";
+				}
             }
 
             for (const auto &key: codon) {
@@ -72,6 +77,14 @@ int codon_count::start(program_option::CodonCount &options) {
             init_codon(codon);
         }
     }
+
+    ofstream total_output(options.output.string().append("/total_output.txt"), ios::trunc);
+    total_output << "Codon\tNumber\tPercentage\n";
+
+	for (const auto &key : total_codon) {
+		if (key.second == 0) continue;
+		total_output << key.first << "\t" << key.second << "\t" << (((double)key.second / (double) all_total) * 100) << "%\n";
+	}
 
     return EXIT_SUCCESS;
 }
