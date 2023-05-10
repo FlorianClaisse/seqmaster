@@ -26,12 +26,13 @@ int check_options(const program_option::ContigDiff &options) {
     return EXIT_SUCCESS;
 }
 
-bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file, map<string, unsigned long> &all_word) {
+bool find_inside_file(string &word, string &contig_name, unsigned long max_nb_error, ifstream &file, map<string, string> &all_word) {
     if (all_word.find(word) != all_word.end()) return true;
 
     unsigned long nb_error(0);
     string line;
     while(getline(file, line)) {
+        if (line.at(0) == '>') continue;
         for (unsigned long i = 0; i < line.size(); i++) {
             for (unsigned long j = 0; j < word.size(); j++) {
                 if (i + j > line.size()) {
@@ -42,7 +43,7 @@ bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file, 
                 if (nb_error > max_nb_error) break;
             }
             if (nb_error <= max_nb_error) {
-                all_word[word] = nb_error;
+                all_word[word] = contig_name;
                 if (file.eof()) file.clear();
                 file.seekg(0, ios::beg);
                 return true;
@@ -54,6 +55,33 @@ bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file, 
     if (file.eof()) file.clear();
     file.seekg(0, ios::beg);
     return false;
+}
+
+// TODO: Continuer cette fonction.
+void check_inside_file(ifstream &file, map<string, string> &all_word) {
+    unsigned long nb_error(0);
+    string line_read;
+    while(getline(file, line_read)) {
+        for (const auto &word : all_word) {
+            for (unsigned long i = 0; i < line_read.size(); i++) {
+                for (unsigned long j = 0; j < word.first.size(); j++) {
+                    if (i + j > line_read.size()) {
+                        nb_error += (word.size() - j);
+                        break;
+                    }
+                    if (line[i + j] != word[j]) nb_error++;
+                    if (nb_error > max_nb_error) break;
+                }
+                if (nb_error <= max_nb_error) {
+                    all_word[word] = contig_name;
+                    if (file.eof()) file.clear();
+                    file.seekg(0, ios::beg);
+                    return true;
+                }
+                nb_error = 0;
+            }
+        }
+    }
 }
 
 int contig_diff::start(const program_option::ContigDiff &options) {
@@ -100,20 +128,29 @@ int contig_diff::start(const program_option::ContigDiff &options) {
         }
     }
 
-    map<string, unsigned long> common;
-    string first_line_read, second_line_read, sub;
+    map<string, string> all_common;
+    string first_line_read, second_line_read, sub, contig_name;
     while (getline(first_input, first_line_read)) {
-        if (first_line_read.at(0) == '>') continue;
+        if (first_line_read.at(0) == '>') {
+            contig_name = first_line_read;
+            continue;
+        }
         for (unsigned long size = first_line_read.size(); size > 0; size--) {
             sub = first_line_read.substr(0, size);
-            if (find_inside_file(sub, (size * (100 - options.accept)) / 100, second_input, common)) break;
+            find_inside_file(sub, contig_name, (size * (100 - options.accept)) / 100, second_input, all_common);
         }
     }
 
-    for(const auto &key : common) {
-        cout << "Key : " << key.first << ", value : " << key.second << endl;
+    cout << "Common Size : " << all_common.size() << endl;
+
+    for (const auto &currentPath : fs::directory_iterator(options.inputA)) {
+        if (!fasta::is_fastaline_file(currentPath)) continue;
+        if (fasta::is_result_file(currentPath)) continue;
+
+        ifstream currentFile(currentPath);
+        check_inside_file(currentFile, all_common);
     }
-    cout << "Size : " << common.size() << endl;
+
 
     return EXIT_SUCCESS;
 }
