@@ -26,14 +26,33 @@ int check_options(const program_option::ContigDiff &options) {
     return EXIT_SUCCESS;
 }
 
-bool find_inside_line(string &word, unsigned long pos, string &line, map<string, unsigned long> &all_word) {
+bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file, map<string, unsigned long> &all_word) {
     if (all_word.find(word) != all_word.end()) return true;
 
-    if (line.find(word) != string::npos) {
-        all_word[word] = pos;
-        return true;
+    unsigned long nb_error(0);
+    string line;
+    while(getline(file, line)) {
+        for (unsigned long i = 0; i < line.size(); i++) {
+            for (unsigned long j = 0; j < word.size(); j++) {
+                if (i + j > line.size()) {
+                    nb_error += (word.size() - j);
+                    break;
+                }
+                if (line[i + j] != word[j]) nb_error++;
+                if (nb_error > max_nb_error) break;
+            }
+            if (nb_error <= max_nb_error) {
+                all_word[word] = nb_error;
+                if (file.eof()) file.clear();
+                file.seekg(0, ios::beg);
+                return true;
+            }
+            nb_error = 0;
+        }
     }
 
+    if (file.eof()) file.clear();
+    file.seekg(0, ios::beg);
     return false;
 }
 
@@ -63,7 +82,7 @@ int contig_diff::start(const program_option::ContigDiff &options) {
         return EXIT_FAILURE;
     }
 
-    cout << "Find common in 2 A file";
+    cout << "Find common in 2 A file\n";
     bool first(true);
     ifstream first_input, second_input;
     for (const auto &currentFile : fs::directory_iterator(options.inputA)) {
@@ -83,27 +102,18 @@ int contig_diff::start(const program_option::ContigDiff &options) {
 
     map<string, unsigned long> common;
     string first_line_read, second_line_read, sub;
-    // a améliorer
     while (getline(first_input, first_line_read)) {
         if (first_line_read.at(0) == '>') continue;
-        cout << "A line read : " << first_line_read << "\n";
-        for (unsigned long size = 1; size < first_line_read.size(); size++) {
-            for (unsigned long pos = 0; pos <= (first_line_read.size() - size); pos++) {
-                sub = first_line_read.substr(pos, size);
-                cout << "sub : " << sub << "\n";
-                while (getline(second_input, second_line_read)) {
-                    if (second_line_read.at(0) == '>') continue;
-                    cout << "B line read : " << second_line_read << "\n";
-                    if (find_inside_line(sub, pos, second_line_read, common)) {
-                        cout << "Find" << "\n";
-                        break;
-                    }
-                }
-                if (second_input.eof()) second_input.clear();
-                second_input.seekg(0, ios::beg);
-            }
+        for (unsigned long size = first_line_read.size(); size > 0; size--) {
+            sub = first_line_read.substr(0, size);
+            if (find_inside_file(sub, (size * (100 - options.accept)) / 100, second_input, common)) break;
         }
     }
+
+    for(const auto &key : common) {
+        cout << "Key : " << key.first << ", value : " << key.second << endl;
+    }
+    cout << "Size : " << common.size() << endl;
 
     return EXIT_SUCCESS;
 }

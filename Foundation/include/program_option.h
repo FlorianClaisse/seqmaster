@@ -63,6 +63,7 @@ namespace program_option {
         std::filesystem::path inputA;
         std::filesystem::path inputB;
         std::filesystem::path output;
+        int accept;
         int threads;
     } ContigDiff;
 }
