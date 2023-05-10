@@ -12,6 +12,7 @@
 // Program name
 #define FINDALL "--findall"
 #define CODONCOUNT "--codoncount"
+#define CONTIGDIFF "--contigdiff"
 
 // Commande option
 #define THREADS "--threads"
@@ -31,6 +32,8 @@ namespace program_option {
     int parse_find_all(const std::vector<std::string_view> &argv);
     /** Parse le ligne de commande reconnu comme etant pour le programme codon count. Une fois la commande parsé correctement le program est lancé. */
     int parse_codon_count(const std::vector<std::string_view> &argv);
+    /** Parse la ligne de commande reconnu comme etant cela pour le programme contig diff. Une fois la ligne de commande parsé, le programme est lancé. */
+    int parse_contig_diff(const std::vector<std::string_view> &argv);
 
     /** Affiche les usage pour la ligne de commande des programmes. */
     int usage();
@@ -38,6 +41,8 @@ namespace program_option {
     int find_all_usage();
     /** Affiche les usages pout le programme count_count */
     int codon_count_usage();
+    /** Affiche les usages pour le programme contig diff. */
+    int contig_diff_usage();
 
     /** structure contenant les options necessaire pour le programme find all. */
     typedef struct {

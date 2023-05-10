@@ -25,6 +25,8 @@ int program_option::parse(int argc, char **argv) {
         return parse_find_all(sub_args);
     } else if (args[1] == CODONCOUNT) {
         return parse_codon_count(sub_args);
+    } else if (args[1] == CONTIGDIFF) {
+        return parse_contig_diff(sub_args);
     }
 
     return usage();
@@ -126,6 +128,29 @@ int program_option::parse_codon_count(const vector<string_view> &argv) {
 }
 
 int program_option::codon_count_usage() {
+    cout << "Codon Count" << endl
+    << "Usage :" << endl
+    << "./Contig " << CODONCOUNT << " " << INPUTA << " <path> " << OUTPUT << " <path>" << endl
+    << "\t" << INPUTA << "\tChemin vers le fichier qui contient les contigs ou il faut compter les codons.\n\n"
+    << "\t" << OUTPUT << "\tChemin vers le dossier de sortie.\n";
     return EXIT_SUCCESS;
 }
+
+// --inputA <path> --inputB <path> --output <path> [--threads <number>]
+int program_option::parse_contig_diff(const std::vector<std::string_view> &argv) {
+    return EXIT_SUCCESS;
+}
+
+int program_option::contig_diff_usage() {
+    cout << "Contig Diff" << endl
+    << "Usage :" << endl
+    << "./Contig " << CONTIGDIFF << " " << INPUTA << " <path> " << INPUTB << " <path> " << OUTPUT << " <path> " << "[" << THREADS << " <number>]\n"
+    << "\t" << INPUTA << "\tChemin vers le dossier A.\n\n"
+    << "\t" << INPUTB << "\tChemin vers le dossier B.\n\n"
+    << "\t" << OUTPUT << "\tChemin vers le dossier qui va contenir les fichiers de sortie.\n\n"
+    << "\t" << THREADS << "\tNombre de threads que le programme va utiliser (default=4)\n";
+    return EXIT_SUCCESS;
+}
+
+
 
