@@ -5,6 +5,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <numeric>
 #include <map>
 #include "../Foundation/include/fasta.h"
 #include "contig_diff.h"
@@ -26,39 +27,35 @@ int check_options(const program_option::ContigDiff &options) {
     return EXIT_SUCCESS;
 }
 
-bool find_inside_file(string &word, string &contig_name, unsigned long max_nb_error, ifstream &file, map<string, string> &all_word) {
-    if (all_word.find(word) != all_word.end()) return true;
-
-    unsigned long nb_error(0);
+void find_inside_file(string &word, string &contig_name, unsigned long max_nb_error, ifstream &file, map<string, string> &all_word) {
     string line;
     while(getline(file, line)) {
         if (line.at(0) == '>') continue;
+        unsigned long nb_error(0);
         for (unsigned long i = 0; i < line.size(); i++) {
             for (unsigned long j = 0; j < word.size(); j++) {
                 if (i + j > line.size()) {
                     nb_error += (word.size() - j);
-                    break;
+                    if (nb_error <= max_nb_error) {
+                        all_word[word] = contig_name;
+                        return;
+                    } else break;
+                } else if (line[i + j] != word[j]) {
+                    nb_error++;
+                    if (nb_error > max_nb_error) break;
                 }
-                if (line[i + j] != word[j]) nb_error++;
-                if (nb_error > max_nb_error) break;
             }
             if (nb_error <= max_nb_error) {
                 all_word[word] = contig_name;
-                if (file.eof()) file.clear();
-                file.seekg(0, ios::beg);
-                return true;
+                return;
             }
             nb_error = 0;
         }
     }
-
-    if (file.eof()) file.clear();
-    file.seekg(0, ios::beg);
-    return false;
 }
 
 // TODO: Continuer cette fonction.
-void check_inside_file(ifstream &file, map<string, string> &all_word) {
+/*void check_inside_file(ifstream &file, map<string, string> &all_word) {
     unsigned long nb_error(0);
     string line_read;
     while(getline(file, line_read)) {
@@ -82,7 +79,7 @@ void check_inside_file(ifstream &file, map<string, string> &all_word) {
             }
         }
     }
-}
+}*/
 
 int contig_diff::start(const program_option::ContigDiff &options) {
 
@@ -129,7 +126,7 @@ int contig_diff::start(const program_option::ContigDiff &options) {
     }
 
     map<string, string> all_common;
-    string first_line_read, second_line_read, sub, contig_name;
+    string first_line_read, sub, contig_name;
     while (getline(first_input, first_line_read)) {
         if (first_line_read.at(0) == '>') {
             contig_name = first_line_read;
@@ -137,19 +134,23 @@ int contig_diff::start(const program_option::ContigDiff &options) {
         }
         for (unsigned long size = first_line_read.size(); size > 0; size--) {
             sub = first_line_read.substr(0, size);
-            find_inside_file(sub, contig_name, (size * (100 - options.accept)) / 100, second_input, all_common);
+            if (all_common.find(sub) == all_common.end()) {
+                find_inside_file(sub, contig_name, (size * (100 - options.accept)) / 100, second_input, all_common);
+            }
+            if (second_input.eof()) second_input.clear();
+            second_input.seekg(0, ios::beg);
         }
     }
 
     cout << "Common Size : " << all_common.size() << endl;
 
-    for (const auto &currentPath : fs::directory_iterator(options.inputA)) {
+    /*for (const auto &currentPath : fs::directory_iterator(options.inputA)) {
         if (!fasta::is_fastaline_file(currentPath)) continue;
         if (fasta::is_result_file(currentPath)) continue;
 
         ifstream currentFile(currentPath);
         check_inside_file(currentFile, all_common);
-    }
+    }*/
 
 
     return EXIT_SUCCESS;
