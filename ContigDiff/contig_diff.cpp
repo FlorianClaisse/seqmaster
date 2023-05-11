@@ -151,29 +151,81 @@ int contig_diff::start(const program_option::ContigDiff &options) {
         common_size += i.size();
     }
     cout << "Common start Size : " << common_size << endl;
-    cout << "Find common inside all A.\n";
 
-    /*vector<string> key_to_remove;
-    for (const auto &currentPath : fs::directory_iterator(options.inputA)) {
+    // convert vector<map<string, string>> to map<string, string>
+    map<string, string> common_result;
+    for (const auto &map : all_common) {
+        for (const auto &[key, value] : map) {
+            common_result[key] = value;
+        }
+    }
+    all_common.clear();
+
+    cout << "Find common inside all A.\n";
+    long nb_files = distance(fs::directory_iterator(options.inputA), fs::directory_iterator{}); // C++17
+
+    vector<vector<string>> all_key_to_remove(options.threads);
+#pragma omp parallel for default(none) shared(nb_files, options, common_result, all_key_to_remove) num_threads(options.threads)
+    for (long i = 0; i < nb_files; i++) {
+        fs::directory_entry currentPath = *next(fs::directory_iterator(options.inputA), i);
         if (!fasta::is_fastaline_file(currentPath)) continue;
         if (fasta::is_result_file(currentPath)) continue;
 
         ifstream currentFile(currentPath);
-        for (const auto &common : all_common) {
+        for (const auto &common : common_result) {
             if (!check_inside_file(currentFile, common.first, (common.first.size() * (100 - options.accept)) / 100)) {
-                key_to_remove.push_back(common.first);
+                all_key_to_remove[omp_get_thread_num()].push_back(common.first);
             }
             if (currentFile.eof()) currentFile.clear();
             currentFile.seekg(0, ios::beg);
         }
-        for (const auto &key: key_to_remove) all_common.erase(key);
-        key_to_remove.clear();
 
         currentFile.close();
     }
 
-    cout << "Common end Size : " << all_common.size() << endl;*/
+    // TODO: Garder que le plus grande chaine commune pour chaque contig
 
+    // Remove all keys
+    for (const auto &vec: all_key_to_remove) {
+        for (const auto &key: vec) {
+            common_result.erase(key);
+        }
+    }
+    all_key_to_remove.clear();
+
+    cout << "Common end Size : " << common_result.size() << endl;
+
+    cout << "Find inside B.\n";
+    nb_files = distance(fs::directory_iterator(options.inputB), fs::directory_iterator{}); // C++17
+
+    vector<vector<string>> all_key_to_remove_in_B(options.threads);
+#pragma omp parallel for default(none) shared(nb_files, options, common_result, all_key_to_remove_in_B) num_threads(options.threads)
+    for (long i = 0; i < nb_files; i++) {
+        fs::directory_entry currentPath = *next(fs::directory_iterator(options.inputB), i);
+        if (!fasta::is_fastaline_file(currentPath)) continue;
+        if (fasta::is_result_file(currentPath)) continue;
+
+        ifstream currentFile(currentPath);
+        for (const auto &common : common_result) {
+            if (check_inside_file(currentFile, common.first, (common.first.size() * (100 - options.accept)) / 100)) {
+                all_key_to_remove_in_B[omp_get_thread_num()].push_back(common.first);
+            }
+            if (currentFile.eof()) currentFile.clear();
+            currentFile.seekg(0, ios::beg);
+        }
+
+        currentFile.close();
+    }
+
+    // Remove all keys
+    for (const auto &vec: all_key_to_remove_in_B) {
+        for (const auto &key: vec) {
+            common_result.erase(key);
+        }
+    }
+    all_key_to_remove_in_B.clear();
+
+    cout << "Common end Size : " << common_result.size() << endl;
 
     return EXIT_SUCCESS;
 }
