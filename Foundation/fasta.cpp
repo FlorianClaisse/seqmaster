@@ -38,6 +38,15 @@ int fasta::to_fasta_line(const fs::path &filePath) {
     return EXIT_SUCCESS;
 }
 
+int fasta::directory_to_fasta_line(const std::filesystem::path &directoryPath) {
+    for (const auto &currentFile : fs::directory_iterator(directoryPath)) {
+        if (!is_fasta_file(currentFile)) continue;
+        if (is_result_file(currentFile)) continue;
+        if (to_fasta_line(currentFile) != EXIT_SUCCESS) return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
 map<string, string> fasta::decode_fastaline(const fs::path &filePath) {
     ifstream inputFile(filePath);
 

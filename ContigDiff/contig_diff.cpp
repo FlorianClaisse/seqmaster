@@ -25,54 +25,32 @@ int check_options(const program_option::ContigDiff &options) {
         return EXIT_FAILURE;
     }
 
+    if (!fs::is_directory(options.output)) {
+        cout << "Path : " << options.output << " n'est pas un dossier.\n";
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 
-void find_inside_file(string &word, string &contig_name, unsigned long max_nb_error, ifstream &file, map<string, string> &all_word) {
+bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) {
+    unsigned long nb_error;
     string line;
-    while(getline(file, line)) {
+    while (getline(file, line)) {
         if (line.at(0) == '>') continue;
-        unsigned long nb_error(0);
         for (unsigned long i = 0; i < line.size(); i++) {
-            for (unsigned long j = 0; j < word.size(); j++) {
-                if (i + j > line.size()) {
-                    nb_error += (word.size() - j);
-                    if (nb_error <= max_nb_error) {
-                        all_word[word] = contig_name;
-                        return;
-                    } else break;
-                } else if (line[i + j] != word[j]) {
-                    nb_error++;
-                    if (nb_error > max_nb_error) break;
-                }
-            }
-            if (nb_error <= max_nb_error) {
-                all_word[word] = contig_name;
-                return;
-            }
             nb_error = 0;
-        }
-    }
-}
-
-bool check_inside_file(ifstream &file, const string &word, unsigned long max_nb_error) {
-    string line_read;
-    unsigned long nb_error(0);
-    while(getline(file, line_read)) {
-        if (line_read.at(0) == '>') continue;
-        for (unsigned long i = 0; i < line_read.size(); i++) {
+            if ( (i + word.size()) > line.size()) {
+                nb_error += ((i + word.size()) - line.size());
+                if (nb_error > max_nb_error) break;
+            }
             for (unsigned long j = 0; j < word.size(); j++) {
-                if (i + j > line_read.size()) {
-                    nb_error += (word.size() - j);
-                    if (nb_error <= max_nb_error) return true;
-                    else break;
-                } else if (line_read[i + j] != word[j]) {
+                if (line[i + j] != word[j]) {
                     nb_error++;
                     if (nb_error > max_nb_error) break;
                 }
             }
             if (nb_error <= max_nb_error) return true;
-            nb_error = 0;
         }
     }
     return false;
@@ -83,26 +61,10 @@ int contig_diff::start(const program_option::ContigDiff &options) {
     if (check_options(options) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     cout << "Convert input A file's to fastaline.\n";
-    unsigned long nb_fasta_files(0);
-    for (const auto &currentFile : fs::directory_iterator(options.inputA)) {
-        if (!fasta::is_fasta_file(currentFile)) continue;
-        if (fasta::is_result_file(currentFile)) continue;
-        if (fasta::to_fasta_line(currentFile) != EXIT_SUCCESS) return EXIT_FAILURE;
-        nb_fasta_files++;
-    }
+    fasta::directory_to_fasta_line(options.inputA);
 
     cout << "Convert input B file's to fastaline.\n";
-    for (const auto &currentFile: fs::directory_iterator(options.inputB)) {
-        if (!fasta::is_fasta_file(currentFile)) continue;
-        if (fasta::is_result_file(currentFile)) continue;
-        if (fasta::to_fasta_line(currentFile) != EXIT_SUCCESS) return EXIT_FAILURE;
-    }
-
-    cout << "Check number of files in input A.\n";
-    if (nb_fasta_files < 2) {
-        cout << "Le nombre de fichier dans l'input A doit être au minimum de 2.\n";
-        return EXIT_FAILURE;
-    }
+    fasta::directory_to_fasta_line(options.inputB);
 
     cout << "Find common in 2 A file\n";
     bool first(true);
@@ -123,42 +85,44 @@ int contig_diff::start(const program_option::ContigDiff &options) {
         }
     }
 
-    vector<map<string, string>> all_common(options.threads);
+    if (second_input_path.empty()) {
+        cout << "Il faut au minimum deux fichier dans le dossier A.\n";
+        return EXIT_FAILURE;
+    }
+
+    vector<map<string, string>> all_contig_common(options.threads);
     string first_line_read, contig_name;
     while (getline(first_input, first_line_read)) {
         if (first_line_read.at(0) == '>') {
             contig_name = first_line_read;
             continue;
         }
-#pragma omp parallel for default(none) shared(first_line_read, all_common, options, second_input_path, contig_name) num_threads(options.threads)
+#pragma omp parallel for default(none) shared(first_line_read, second_input_path, contig_name, all_contig_common, options) num_threads(options.threads)
         for (unsigned long size = first_line_read.size(); size > 0; size--) {
             ifstream second_input(second_input_path);
-            int currentThread = omp_get_thread_num();
             string sub = first_line_read.substr(0, size);
-            if (all_common[currentThread].find(sub) == all_common[currentThread].end()) {
-                find_inside_file(sub, contig_name, (size * (100 - options.accept)) / 100, second_input, all_common[currentThread]);
-                if (second_input.eof()) second_input.clear();
-                second_input.seekg(0, ios::beg);
+            if (find_inside_file(sub, (size * (100 - options.accept)) / 100, second_input)) {
+                all_contig_common[omp_get_thread_num()][contig_name] = sub;
+#pragma omp cancel for
             }
-            second_input.close();
+            if (second_input.eof()) second_input.clear();
+            second_input.seekg(0, ios::beg);
         }
     }
 
-    first_input.close();
-
-    unsigned long common_size(0);
-    for (const auto & i : all_common) {
-        common_size += i.size();
-    }
-    cout << "Common start Size : " << common_size << endl;
-
-    // convert vector<map<string, string>> to map<string, string>
-    map<string, string> common_result;
-    for (const auto &map : all_common) {
-        for (const auto &[key, value] : map) {
-            common_result[key] = value;
+    map<string, string> all_common_result;
+    for (const auto &vec : all_contig_common) {
+        for (const auto &value: vec) {
+            if (all_common_result.find(value.first) == all_common_result.end()) {
+                if (value.second > all_common_result[value.first]) all_common_result[value.first] = value.second;
+            } else all_common_result[value.first] = value.second;
         }
     }
+    all_contig_common.clear();
+
+    cout << "Common start size : " << all_common_result.size() << endl;
+
+/*
     all_common.clear();
 
     cout << "Find common inside all A.\n";
@@ -225,7 +189,7 @@ int contig_diff::start(const program_option::ContigDiff &options) {
     }
     all_key_to_remove_in_B.clear();
 
-    cout << "Common end Size : " << common_result.size() << endl;
+    cout << "Common end Size : " << common_result.size() << endl;*/
 
     return EXIT_SUCCESS;
 }
