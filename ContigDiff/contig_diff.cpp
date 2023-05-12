@@ -66,28 +66,19 @@ int contig_diff::start(const program_option::ContigDiff &options) {
     cout << "Convert input B file's to fastaline.\n";
     fasta::directory_to_fasta_line(options.inputB);
 
-    cout << "Find common in 2 A file\n";
-    bool first(true);
-    ifstream first_input;
-    string second_input_path;
-    for (const auto &currentFile : fs::directory_iterator(options.inputA)) {
-        if (!fasta::is_fastaline_file(currentFile)) continue;
-        if (fasta::is_result_file(currentFile)) continue;
-
-        if (first) {
-            first = false;
-            first_input.open(currentFile.path());
-            cout << "\tOpen : " << currentFile.path() << ", in first file.\n";
-        } else {
-            second_input_path = currentFile.path();
-            cout << "\tOpen : " << currentFile.path() << ", in second file.\n";
-            break;
-        }
+    long nb_files = distance(fs::directory_iterator(options.inputA), fs::directory_iterator{});
+    if (nb_files < 2) {
+        cout << "Il faut au minimum deux fichiers dans le dossier A.\n";
+        return EXIT_FAILURE;
     }
 
-    if (second_input_path.empty()) {
-        cout << "Il faut au minimum deux fichier dans le dossier A.\n";
-        return EXIT_FAILURE;
+    for (long i = 0; i < nb_files; i++) {
+        fs::directory_entry file_path = *next(fs::directory_iterator(options.inputA), i);
+
+        for (long j = 0; j < nb_files; j++) {
+            fs::directory_entry check_path = *next(fs::directory_iterator(options.inputA), i);
+            if (check_path.path() == file_path.path()) continue;
+        }
     }
 
     vector<map<string, string>> all_contig_common(options.threads);

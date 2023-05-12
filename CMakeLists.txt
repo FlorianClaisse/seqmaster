@@ -24,7 +24,7 @@ set(CDLIB ContigDiff)
 set(FSRC ${FLIB}/directory.cpp ${FLIB}/fasta.cpp ${FLIB}/program_option.cpp)
 set(FASRC ${FALIB}/find_all.cpp)
 set(CCSRC ${CCLIB}/condo_count.cpp)
-set(CDSRC ${CDLIB}/contig_diff.cpp)
+set(CDSRC ${CDLIB}/contig_diff.cpp ${CDLIB}/search_algo.cpp)
 
 add_executable(Contig main.cpp ${FSRC} ${FASRC} ${CCSRC} ${CDSRC})
 
