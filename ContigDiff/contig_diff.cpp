@@ -80,7 +80,7 @@ int contig_diff::start(const program_option::ContigDiff &options) {
             if (check_path.path() == file_path.path()) continue;
         }
     }
-
+/*
     vector<map<string, string>> all_contig_common(options.threads);
     string first_line_read, contig_name;
     while (getline(first_input, first_line_read)) {
@@ -112,7 +112,7 @@ int contig_diff::start(const program_option::ContigDiff &options) {
     all_contig_common.clear();
 
     cout << "Common start size : " << all_common_result.size() << endl;
-
+*/
 /*
     all_common.clear();
 

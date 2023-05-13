@@ -5,15 +5,12 @@
 #ifndef CONTIGDIFF_DIRECTORY_H
 #define CONTIGDIFF_DIRECTORY_H
 
-#include <iostream>
+#include <string>
+#include <filesystem>
 #include <vector>
 
-namespace directory {
-    bool have_extension(const std::string &filePath, const std::string &extension);
-    bool have_extension(const std::string &filePath, const std::vector<std::string> &extensions);
-    std::string fileNameWithoutExtension(const std::string &filePath);
-    std::string fileName(const std::string &filePath);
-    std::string removeExtension(const std::string &value);
+namespace foundation {
+    bool have_extension(const std::filesystem::path &filePath, const std::vector<std::string> &extensions);
 }
 
 #endif //CONTIGDIFF_DIRECTORY_H
