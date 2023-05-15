@@ -6,10 +6,10 @@
 #define CONTIG_FIND_ALL_H
 
 
-#include "../Foundation/include/program_option.h"
+#include "parser.h"
 
 namespace find_all {
-    int start(const program_option::FindAll &options);
+    int main(const find_all::option &options);
 }
 
 #endif //CONTIG_FIND_ALL_H

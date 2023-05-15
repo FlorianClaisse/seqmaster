@@ -13,18 +13,11 @@
 
 namespace fasta {
     /** Transforme un fichier fasta vers un nouveau fichier en format fastaline. */
-    int to_fasta_line(const std::filesystem::path &filePath);
+    int to_fastaline(const std::filesystem::path &filePath);
     /** Transforme tous les fichiers fasta d'un dossier vers un nouveau fichier au format fastaline. */
     int directory_to_fasta_line(const std::filesystem::path &directoryPath);
 
     std::map<std::string, std::string> decode_fastaline(const std::filesystem::path &filePath);
-
-    /** Permet de savoir si un fichier est de type fasta. */
-    bool is_fasta_file(const std::filesystem::path &filePath);
-    /** Permet de savoir si un fichier est de type result. */
-    bool is_result_file(const std::filesystem::path &filePath);
-    /** Permet de savoir si un fichier est de type fastaline. */
-    bool is_fastaline_file(const std::filesystem::path &filePath);
 
     /** Dans un fichier de type fastaline permet de dire si un contig est présent. */
     bool find_contig(const std::filesystem::path &filePath, const std::string &contig);

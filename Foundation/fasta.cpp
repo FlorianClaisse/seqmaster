@@ -14,11 +14,11 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int fasta::to_fasta_line(const fs::path &filePath) {
+int fasta::to_fastaline(const std::filesystem::path &filePath) {
     ifstream inputFile;
     inputFile.open(filePath);
 
-    ofstream outputFile(directory::removeExtension(filePath).append(".fastaline"), ios::trunc);
+    ofstream outputFile(fs::path(filePath).replace_extension("fastaline"), ios::trunc);
 
     string lineRead;
     bool first(true);
@@ -40,9 +40,9 @@ int fasta::to_fasta_line(const fs::path &filePath) {
 
 int fasta::directory_to_fasta_line(const std::filesystem::path &directoryPath) {
     for (const auto &currentFile : fs::directory_iterator(directoryPath)) {
-        if (!is_fasta_file(currentFile)) continue;
-        if (is_result_file(currentFile)) continue;
-        if (to_fasta_line(currentFile) != EXIT_SUCCESS) return EXIT_FAILURE;
+        if (!directory::is_fasta_file(currentFile)) continue;
+        if (directory::is_result_file(currentFile)) continue;
+        to_fastaline(currentFile);
     }
     return EXIT_SUCCESS;
 }
@@ -61,21 +61,6 @@ map<string, string> fasta::decode_fastaline(const fs::path &filePath) {
     inputFile.close();
 
     return result;
-}
-
-bool fasta::is_fasta_file(const fs::path &filePath) {
-    if (!is_regular_file(filePath)) return false;
-
-    array<string, 6> extensions = {".fasta", ".fna", ".faa", ".ffn", ".fa", ".fas"};
-    return std::find(extensions.begin(), extensions.end(), filePath.extension()) != extensions.end();
-}
-
-bool fasta::is_result_file(const std::filesystem::path &filePath) {
-    return is_regular_file(filePath) && (filePath.string().find("-result.fasta") != string::npos);
-}
-
-bool fasta::is_fastaline_file(const fs::path &filePath) {
-    return is_regular_file(filePath) && filePath.extension() == ".fastaline";
 }
 
 bool fasta::find_contig(const fs::path &filePath, const string &contig) {

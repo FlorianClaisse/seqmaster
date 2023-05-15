@@ -13,7 +13,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) {
+/*bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) {
     unsigned long nb_error;
     string line;
     while (getline(file, line)) {
@@ -37,7 +37,7 @@ bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) 
 }
 
 void common_in_two_file(const fs::path &path_A, const fs::path &path_B, const program_option::ContigDiff &options) {
-    string filename = directory::fileName(path_A);
+    string filename = path_A.stem();
     ifstream fileA(path_A);
 
     vector<map<string, string>> all_common(options.threads);
@@ -58,4 +58,4 @@ void common_in_two_file(const fs::path &path_A, const fs::path &path_B, const pr
             input_B.seekg(0, ios::beg);
         }
     }
-}
+}*/

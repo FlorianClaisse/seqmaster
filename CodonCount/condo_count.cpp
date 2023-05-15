@@ -11,6 +11,7 @@
 #include "condo_count.h"
 
 using namespace std;
+namespace fs = std::filesystem;
 
 void init_codon(map<string, int> &codon) {
     codon["TTT"] = 0; codon["TCT"] = 0; codon["TAT"] = 0; codon["TGT"] = 0;
@@ -40,41 +41,47 @@ int codon_count::start(program_option::CodonCount &options) {
     init_codon(codon);
     init_codon(total_codon);
 
-    if (!fasta::is_fasta_file(options.inputA)) {
-        cout << "Path : " << options.inputA << "n'est pas un fichier fasta" << endl;
+    if (!is_directory(options.inputA)) {
+        cout << "Path : " << options.inputA << "n'est pas un dossier" << endl;
         return EXIT_FAILURE;
     }
 
-    if (fasta::to_fasta_line(options.inputA) == EXIT_FAILURE) return EXIT_FAILURE;
+    if (fasta::directory_to_fasta_line(options.inputA) == EXIT_FAILURE) return EXIT_FAILURE;
 
-    ifstream inputFile(directory::removeExtension(options.inputA).append(".fastaline"));
+    unsigned long all_total(0);
+    for (const auto &currentFile: fs::directory_iterator(options.inputA)) {
+        if (!directory::is_fastaline_file(currentFile)) continue;
 
-    ofstream outputFile(options.output.string().append("/output.txt"), ios::trunc);
-    outputFile << "Contig Name\tCodon\tNumber\tPercentage\n";
+        ifstream inputFile(currentFile.path());
 
-    string lineRead, prot_name;
-    unsigned long total(0), all_total(0);
-    while(getline(inputFile, lineRead)) {
-        if (lineRead.at(0) == '>') prot_name = lineRead;
-        else {
-            for (unsigned long i = 0; i < lineRead.size(); i += 3) {
-                string sub = lineRead.substr(i, 3);
-                if (codon.find(sub) != codon.end()) {
-                    codon[sub]++;
-                    total_codon[sub]++;
-                    total++;
-                    all_total++;
-                } else {
-					cout << "Contig : " << prot_name << ", codon : " << sub << " unknown\n";
-				}
+        ofstream outputFile(options.output.string().append("/" + currentFile.path().stem().string() + ".txt"), ios::trunc);
+        outputFile << "Contig Name\tCodon\tNumber\tPercentage\n";
+
+        string lineRead, prot_name;
+        unsigned long total(0);
+        while (getline(inputFile, lineRead)) {
+            if (lineRead.at(0) == '>') prot_name = lineRead;
+            else {
+                for (unsigned long i = 0; i < lineRead.size(); i += 3) {
+                    string sub = lineRead.substr(i, 3);
+                    if (codon.find(sub) != codon.end()) {
+                        codon[sub]++;
+                        total_codon[sub]++;
+                        total++;
+                        all_total++;
+                    } else {
+                        cout << "Contig : " << prot_name << ", codon : " << sub << " unknown\n";
+                    }
+                }
+
+                for (const auto &key: codon) {
+                    if (key.second == 0) continue;
+                    outputFile << prot_name << "\t" << key.first << "\t" << key.second << "\t"
+                               << (((double) key.second / (double) total) * 100) << "%\n";
+                }
+                total = 0;
+                init_codon(codon);
             }
-
-            for (const auto &key: codon) {
-                if (key.second == 0) continue;
-                outputFile << prot_name << "\t" << key.first << "\t" << key.second << "\t" << (((double)key.second / (double) total) * 100) << "%\n";
-            }
-            total = 0;
-            init_codon(codon);
         }
     }
 
