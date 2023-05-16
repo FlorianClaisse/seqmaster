@@ -56,3 +56,26 @@ bool directory::is_result_file(const std::filesystem::path &filePath) {
 bool directory::is_fastaline_file(const fs::path &filePath) {
     return fs::is_regular_file(filePath) && filePath.extension() == ".fastaline";
 }
+
+int directory::count_fasta_file(const std::filesystem::path &directoryPath) {
+    int cpt(0);
+    for(const auto &path: fs::directory_iterator(directoryPath)) {
+        if (is_fastaline_file(path)) cpt++;
+    }
+    return cpt;
+}
+
+std::pair<fs::path, fs::path> directory::two_first_fasta(const std::filesystem::path &directoryPath) {
+    bool find_one(false);
+    fs::path first;
+    for (const auto &path: fs::directory_iterator(directoryPath)) {
+        if (is_fastaline_file(path)) {
+            if (!find_one) {
+                find_one = true;
+                first = path;
+            } else return {first, path};
+        }
+    }
+
+    return {"", ""};
+}

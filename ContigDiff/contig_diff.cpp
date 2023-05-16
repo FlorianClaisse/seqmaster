@@ -17,6 +17,7 @@ namespace fs = std::filesystem;
 
 namespace contig_diff {
     void init_with_2_file(const fs::path &first_path, const fs::path &second_path, map<string, string> &common);
+    unsigned long find_inside_file(ifstream &test_file, const string &word);
 }
 
 bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) {
@@ -49,9 +50,9 @@ int contig_diff::main(const contig_diff::option &options) {
     cout << "Convert input B file's to fastaline.\n";
     fasta::directory_to_fastaline(options.inputB);
 
-    long nb_files = distance(fs::directory_iterator(options.inputA), fs::directory_iterator{});
-    if (nb_files < 2) {
-        cout << "Il faut au minimum deux fichiers dans le dossier A.\n";
+    int nb_fasta_file = directory::count_fasta_file(options.inputA);
+    if (nb_fasta_file < 2) {
+        cout << "Il faut au minimum deux fichiers de type fasta dans le dossier A.\n";
         return EXIT_FAILURE;
     }
 
@@ -175,9 +176,41 @@ void contig_diff::init_with_2_file(const fs::path &first_path, const fs::path &s
         if (first_line_read.at(0) == '>') {
             contig_name = first_line_read.append(" -> " + filename);
         } else {
-
+            ifstream *test_file = directory::read_open(second_path);
+            unsigned long size = find_inside_file((*test_file), first_line_read));
+            if (size != 0) {
+                string sub = first_line_read.substr(0, size);
+                 if (common.find(sub) == common.end()) {
+                     common[sub] = contig_name;
+                 }
+            }
         }
     }
 
     directory::read_close(first_file);
+}
+
+// Only for 100%
+unsigned long contig_diff::find_inside_file(ifstream &test_file, const string &word) {
+    unsigned long max_size(0);
+    bool error_found(false);
+    string line_read;
+    while(getline(test_file, line_read)) {
+        for (unsigned long offset = 0; offset < line_read.size(); offset++) {
+            for (unsigned long i = 0; i < word.size(); i++) {
+                if (offset + i > line_read.size()) {
+                    if ((i - 1) > max_size) max_size = (i - 1);
+                    error_found = true;
+                    break;
+                } else if (line_read[offset + i] != word[i]) {
+                    if (i != 0 && ((i - 1) > max_size)) max_size = (i - 1);
+                    error_found = true;
+                    break;
+                }
+            }
+            if (!error_found) return word.size();
+            error_found = false;
+        }
+    }
+    return max_size;
 }

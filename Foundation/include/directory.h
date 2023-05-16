@@ -23,6 +23,9 @@ namespace directory {
     bool is_fasta_file(const std::filesystem::path &filePath);
     bool is_result_file(const std::filesystem::path &filePath);
     bool is_fastaline_file(const std::filesystem::path &filePath);
+
+    int count_fasta_file(const std::filesystem::path &directoryPath);
+    std::pair<std::filesystem::path, std::filesystem::path> two_first_fasta(const std::filesystem::path &directoryPath);
 }
 
 #endif //CONTIGDIFF_DIRECTORY_H
