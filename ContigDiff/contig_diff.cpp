@@ -9,28 +9,14 @@
 #include <map>
 #include <vector>
 #include "../Foundation/include/fasta.h"
-#include "contig_diff.h"
+#include "../Foundation/include/directory.h"
+#include "include/contig_diff.h"
 
 using namespace std;
 namespace fs = std::filesystem;
 
-int check_options(const program_option::ContigDiff &options) {
-    if (!fs::is_directory(options.inputA)) {
-        cout << "Path : " << options.inputA << " n'est pas un dossier.\n";
-        return EXIT_FAILURE;
-    }
-
-    if (!fs::is_directory(options.inputB)) {
-        cout << "Path : " << options.inputB << " n'est pas un dossier.\n";
-        return EXIT_FAILURE;
-    }
-
-    if (!fs::is_directory(options.output)) {
-        cout << "Path : " << options.output << " n'est pas un dossier.\n";
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+namespace contig_diff {
+    void init_with_2_file(const fs::path &first_path, const fs::path &second_path, map<string, string> &common);
 }
 
 bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) {
@@ -56,15 +42,12 @@ bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) 
     return false;
 }
 
-int contig_diff::start(const program_option::ContigDiff &options) {
-
-    if (check_options(options) != EXIT_SUCCESS) return EXIT_FAILURE;
-
+int contig_diff::main(const contig_diff::option &options) {
     cout << "Convert input A file's to fastaline.\n";
-    fasta::directory_to_fasta_line(options.inputA);
+    fasta::directory_to_fastaline(options.inputA);
 
     cout << "Convert input B file's to fastaline.\n";
-    fasta::directory_to_fasta_line(options.inputB);
+    fasta::directory_to_fastaline(options.inputB);
 
     long nb_files = distance(fs::directory_iterator(options.inputA), fs::directory_iterator{});
     if (nb_files < 2) {
@@ -72,14 +55,12 @@ int contig_diff::start(const program_option::ContigDiff &options) {
         return EXIT_FAILURE;
     }
 
-    for (long i = 0; i < nb_files; i++) {
-        fs::directory_entry file_path = *next(fs::directory_iterator(options.inputA), i);
+    // [contig_value, (contig_name -> filename)]
+    map<string, string> common;
 
-        for (long j = 0; j < nb_files; j++) {
-            fs::directory_entry check_path = *next(fs::directory_iterator(options.inputA), i);
-            if (check_path.path() == file_path.path()) continue;
-        }
-    }
+    // Init common with 2 file
+
+
 /*
     vector<map<string, string>> all_contig_common(options.threads);
     string first_line_read, contig_name;
@@ -183,4 +164,20 @@ int contig_diff::start(const program_option::ContigDiff &options) {
     cout << "Common end Size : " << common_result.size() << endl;*/
 
     return EXIT_SUCCESS;
+}
+
+void contig_diff::init_with_2_file(const fs::path &first_path, const fs::path &second_path, map<string, string> &common) {
+    string filename = first_path.stem();
+    ifstream *first_file = directory::read_open(first_path);
+
+    string first_line_read, contig_name;
+    while(getline((*first_file), first_line_read)) {
+        if (first_line_read.at(0) == '>') {
+            contig_name = first_line_read.append(" -> " + filename);
+        } else {
+
+        }
+    }
+
+    directory::read_close(first_file);
 }

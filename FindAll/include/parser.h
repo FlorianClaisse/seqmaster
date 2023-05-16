@@ -22,4 +22,4 @@ namespace find_all {
     } option;
 }
 
-#endif //CONTIG_PARSER_H
+#endif //CONTIG_FIND_ALL_PARSER_H
