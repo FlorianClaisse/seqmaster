@@ -77,5 +77,5 @@ std::pair<fs::path, fs::path> directory::two_first_fasta(const std::filesystem::
         }
     }
 
-    return {"", ""};
+    return {"", ""}; // Ne doit jamais arriver.
 }

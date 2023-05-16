@@ -43,6 +43,46 @@ bool find_inside_file(string &word, unsigned long max_nb_error, ifstream &file) 
     return false;
 }
 
+unsigned long find_inside_file2(ifstream &test_file, const string &word) {
+    unsigned long max_size(0);
+    string line_read;
+    while(getline(test_file, line_read)) {
+        if (line_read.at(0) == '>') continue;
+        for (unsigned int i = 1; i <= word.size(); i++) {
+            if (line_read.find(word.substr(0, i)) == string::npos) break;
+            if (i > max_size) max_size = i;
+            if (max_size == word.size()) return word.size();
+        }
+        if (max_size == word.size()) return word.size();
+    }
+
+    return max_size;
+}
+
+void init_with_2_file2(const fs::path &first_path, const fs::path &second_path, map<string, string> &common) {
+    string filename = first_path.stem();
+    ifstream *first_file = directory::read_open(first_path);
+
+    string first_line_read, contig_name;
+    while(getline((*first_file), first_line_read)) {
+        if (first_line_read.at(0) == '>') {
+            contig_name = first_line_read.append(" -> " + filename);
+        } else {
+            ifstream *test_file = directory::read_open(second_path);
+            unsigned long size = find_inside_file2((*test_file), first_line_read);
+            if (size != 0) {
+                string sub = first_line_read.substr(0, size);
+                if (common.find(sub) == common.end()) {
+                    common[sub] = contig_name;
+                }
+            }
+            directory::read_close(test_file);
+        }
+    }
+
+    directory::read_close(first_file);
+}
+
 int contig_diff::main(const contig_diff::option &options) {
     cout << "Convert input A file's to fastaline.\n";
     fasta::directory_to_fastaline(options.inputA);
@@ -57,10 +97,13 @@ int contig_diff::main(const contig_diff::option &options) {
     }
 
     // [contig_value, (contig_name -> filename)]
-    map<string, string> common;
+    map<string, string> common, common2;
 
     // Init common with 2 file
-
+    pair<fs::path, fs::path> two_first = directory::two_first_fasta(options.inputA);
+    init_with_2_file(two_first.first, two_first.second, common);
+    //init_with_2_file2(two_first.first, two_first.second, common);
+    cout << common.size() << endl;
 
 /*
     vector<map<string, string>> all_contig_common(options.threads);
@@ -177,13 +220,14 @@ void contig_diff::init_with_2_file(const fs::path &first_path, const fs::path &s
             contig_name = first_line_read.append(" -> " + filename);
         } else {
             ifstream *test_file = directory::read_open(second_path);
-            unsigned long size = find_inside_file((*test_file), first_line_read));
+            unsigned long size = find_inside_file((*test_file), first_line_read);
             if (size != 0) {
                 string sub = first_line_read.substr(0, size);
                  if (common.find(sub) == common.end()) {
                      common[sub] = contig_name;
                  }
             }
+            directory::read_close(test_file);
         }
     }
 
@@ -196,14 +240,16 @@ unsigned long contig_diff::find_inside_file(ifstream &test_file, const string &w
     bool error_found(false);
     string line_read;
     while(getline(test_file, line_read)) {
+        if (line_read.at(0) == '>') continue;
         for (unsigned long offset = 0; offset < line_read.size(); offset++) {
             for (unsigned long i = 0; i < word.size(); i++) {
+                word.find("test");
                 if (offset + i > line_read.size()) {
-                    if ((i - 1) > max_size) max_size = (i - 1);
+                    if (i > max_size) max_size = i;
                     error_found = true;
                     break;
                 } else if (line_read[offset + i] != word[i]) {
-                    if (i != 0 && ((i - 1) > max_size)) max_size = (i - 1);
+                    if ((i > max_size)) max_size = i;
                     error_found = true;
                     break;
                 }
@@ -214,3 +260,5 @@ unsigned long contig_diff::find_inside_file(ifstream &test_file, const string &w
     }
     return max_size;
 }
+
+
