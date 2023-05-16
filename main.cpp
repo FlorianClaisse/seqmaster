@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstring>
 
 #include "FindAll/include/parser.h"
 #include "CodonCount/include/parser.h"
