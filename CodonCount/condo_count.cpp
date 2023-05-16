@@ -15,13 +15,13 @@ using namespace std;
 namespace fs = std::filesystem;
 
 namespace codon_count {
-    void init_codon(map<string, int> &codon);
-    char find_letter(const string &codon);
+    void init_codon(map<string, pair<int, char>> &codon);
+    void reset_codon(map<string, pair<int, char>> &codon);
 }
 
 int codon_count::main(const codon_count::option &options) {
 
-    map<string, int> codon, total_codon;
+    map<string, pair<int, char>> codon, total_codon;
     init_codon(codon);
     init_codon(total_codon);
 
@@ -34,7 +34,7 @@ int codon_count::main(const codon_count::option &options) {
         ifstream *inputFile = directory::read_open(currentFile.path());
 
         ofstream *outputFile = directory::write_open(options.output.string().append("/" + fileName + ".txt"), ios::trunc);
-        (*outputFile) << "Contig Name\tAmino acids\tCodon\tNumber\tPercentage\n";
+        (*outputFile) << "Contig Name\tCodon\tAmino acids\tNumber\tPercentage\n";
 
         string lineRead, prot_name;
         unsigned long total(0), all_total(0);
@@ -44,8 +44,8 @@ int codon_count::main(const codon_count::option &options) {
                 for (unsigned long i = 0; i < lineRead.size(); i += 3) {
                     string sub = lineRead.substr(i, 3);
                     if (codon.find(sub) != codon.end()) {
-                        codon[sub]++;
-                        total_codon[sub]++;
+                        codon[sub].first++;
+                        total_codon[sub].first++;
                         total++;
                         all_total++;
                     } else {
@@ -54,64 +54,57 @@ int codon_count::main(const codon_count::option &options) {
                 }
 
                 for (const auto &key: codon) {
-                    if (key.second != 0) {
-                        (*outputFile) << prot_name << "\t" << key.first << "\t" << key.second << "\t" << (((double) key.second / (double) total) * 100) << "%\n";
+                    if (key.second.first != 0) {
+                        (*outputFile) << prot_name << "\t" << key.first << "\t" << key.second.second << "\t" << key.second.first << "\t" << (((double) key.second.first / (double) total) * 100) << "%\n";
                     }
                 }
                 total = 0;
-                init_codon(codon);
+                reset_codon(codon);
             }
         }
 
         directory::write_close(outputFile);
         directory::read_close(inputFile);
 
-        ofstream *total_output = directory::write_open(options.output.string().append("/" + fileName + "total.txt"), ios::trunc);
+        ofstream *total_output = directory::write_open(options.output.string().append("/" + fileName + "-total.txt"), ios::trunc);
         (*total_output) << "Codon\tAmino acids\tNumber\tPercentage\n";
 
         for (const auto &key : total_codon) {
-            if (key.second == 0) continue;
-            (*total_output) << key.first << "\t" << key.second << "\t" << (((double)key.second / (double) all_total) * 100) << "%\n";
+            if (key.second.first == 0) continue;
+            (*total_output) << key.first << "\t" << key.second.second << "\t" << key.second.first << "\t" << (((double)key.second.first / (double) all_total) * 100) << "%\n";
         }
 
         directory::write_close(total_output);
-        init_codon(total_codon);
+        reset_codon(total_codon);
     }
 
     return EXIT_SUCCESS;
 }
 
-void codon_count::init_codon(map<string, int> &codon) {
-    codon["TTT"] = 0; codon["TCT"] = 0; codon["TAT"] = 0; codon["TGT"] = 0;
-    codon["TTC"] = 0; codon["TCC"] = 0; codon["TAC"] = 0; codon["TGC"] = 0;
-    codon["TTA"] = 0; codon["TCA"] = 0; codon["TAA"] = 0; codon["TGA"] = 0;
-    codon["TTG"] = 0; codon["TCG"] = 0; codon["TAG"] = 0; codon["TGG"] = 0;
+void codon_count::init_codon(map<string, pair<int, char>> &codon) {
+    codon["TTT"] = {0, 'F'}; codon["TCT"] = {0, 'S'}; codon["TAT"] = {0, 'Y'}; codon["TGT"] = {0, 'C'};
+    codon["TTC"] = {0, 'F'}; codon["TCC"] = {0, 'S'}; codon["TAC"] = {0, 'Y'}; codon["TGC"] = {0, 'C'};
+    codon["TTA"] = {0, 'L'}; codon["TCA"] = {0, 'S'}; codon["TAA"] = {0, '*'}; codon["TGA"] = {0, '*'};
+    codon["TTG"] = {0, 'L'}; codon["TCG"] = {0, 'S'}; codon["TAG"] = {0, '*'}; codon["TGG"] = {0, 'W'};
 
-    codon["CTT"] = 0; codon["CCT"] = 0; codon["CAT"] = 0; codon["CGT"] = 0;
-    codon["CTC"] = 0; codon["CCC"] = 0; codon["CAC"] = 0; codon["CGC"] = 0;
-    codon["CTA"] = 0; codon["CCA"] = 0; codon["CAA"] = 0; codon["CGA"] = 0;
-    codon["CTG"] = 0; codon["CCG"] = 0; codon["CAG"] = 0; codon["CGG"] = 0;
+    codon["CTT"] = {0, 'L'}; codon["CCT"] = {0, 'P'}; codon["CAT"] = {0, 'H'}; codon["CGT"] = {0, 'R'};
+    codon["CTC"] = {0, 'L'}; codon["CCC"] = {0, 'P'}; codon["CAC"] = {0, 'H'}; codon["CGC"] = {0, 'R'};
+    codon["CTA"] = {0, 'L'}; codon["CCA"] = {0, 'P'}; codon["CAA"] = {0, 'Q'}; codon["CGA"] = {0, 'R'};
+    codon["CTG"] = {0, 'L'}; codon["CCG"] = {0, 'P'}; codon["CAG"] = {0, 'Q'}; codon["CGG"] = {0, 'R'};
 
-    codon["ATT"] = 0; codon["ACT"] = 0; codon["AAT"] = 0; codon["AGT"] = 0;
-    codon["ATC"] = 0; codon["ACC"] = 0; codon["AAC"] = 0; codon["AGC"] = 0;
-    codon["ATA"] = 0; codon["ACA"] = 0; codon["AAA"] = 0; codon["AGA"] = 0;
-    codon["ATG"] = 0; codon["ACG"] = 0; codon["AAG"] = 0; codon["AGG"] = 0;
+    codon["ATT"] = {0, 'I'}; codon["ACT"] = {0, 'T'}; codon["AAT"] = {0, 'N'}; codon["AGT"] = {0, 'S'};
+    codon["ATC"] = {0, 'I'}; codon["ACC"] = {0, 'T'}; codon["AAC"] = {0, 'N'}; codon["AGC"] = {0, 'S'};
+    codon["ATA"] = {0, 'I'}; codon["ACA"] = {0, 'T'}; codon["AAA"] = {0, 'K'}; codon["AGA"] = {0, 'R'};
+    codon["ATG"] = {0, 'M'}; codon["ACG"] = {0, 'T'}; codon["AAG"] = {0, 'K'}; codon["AGG"] = {0, 'R'};
 
-    codon["GTT"] = 0; codon["GCT"] = 0; codon["GAT"] = 0; codon["GGT"] = 0;
-    codon["GTC"] = 0; codon["GCC"] = 0; codon["GAC"] = 0; codon["GGC"] = 0;
-    codon["GTA"] = 0; codon["GCA"] = 0; codon["GAA"] = 0; codon["GGA"] = 0;
-    codon["GTG"] = 0; codon["GCG"] = 0; codon["GAG"] = 0; codon["GGG"] = 0;
+    codon["GTT"] = {0, 'V'}; codon["GCT"] = {0, 'A'}; codon["GAT"] = {0, 'D'}; codon["GGT"] = {0, 'G'};
+    codon["GTC"] = {0, 'V'}; codon["GCC"] = {0, 'A'}; codon["GAC"] = {0, 'D'}; codon["GGC"] = {0, 'G'};
+    codon["GTA"] = {0, 'V'}; codon["GCA"] = {0, 'A'}; codon["GAA"] = {0, 'E'}; codon["GGA"] = {0, 'G'};
+    codon["GTG"] = {0, 'V'}; codon["GCG"] = {0, 'A'}; codon["GAG"] = {0, 'E'}; codon["GGG"] = {0, 'G'};
 }
 
-char codon_count::find_letter(const string &codon) {
-    switch (codon) {
-        case "TTT": case "TTC": return 'F';
-        case "TTA": case "TTG": return "L";
-        case "TCT": case "TCC": case "TCA": case "TCG": return 'S';
-        case "TAT": case "TAC": return 'Y';
-        case "TAA": case "TAG": return '*';
-        case "TGT": case "TGC": return 'C';
-        case "TGA": return '*';
-        case "TGG": return 'W';
+void codon_count::reset_codon(map<std::string, pair<int, char>> &codon) {
+    for (auto &value: codon) {
+        value.second.first = 0;
     }
 }
