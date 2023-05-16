@@ -38,7 +38,7 @@ int fasta::to_fastaline(const std::filesystem::path &filePath) {
     return EXIT_SUCCESS;
 }
 
-int fasta::directory_to_fasta_line(const std::filesystem::path &directoryPath) {
+int fasta::directory_to_fastaline(const std::filesystem::path &directoryPath) {
     for (const auto &currentFile : fs::directory_iterator(directoryPath)) {
         if (!directory::is_fasta_file(currentFile)) continue;
         if (directory::is_result_file(currentFile)) continue;

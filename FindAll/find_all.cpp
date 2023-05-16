@@ -43,7 +43,7 @@ int find_all::main(const find_all::option &options) {
 
     // Convert all input to fastaline file.
     if (fasta::to_fastaline(options.inputA) == EXIT_FAILURE) return EXIT_FAILURE;
-    if (fasta::directory_to_fasta_line(options.inputB) == EXIT_FAILURE) return EXIT_FAILURE;
+    if (fasta::directory_to_fastaline(options.inputB) == EXIT_FAILURE) return EXIT_FAILURE;
 
     ifstream *inputFile = directory::read_open(fs::path(options.inputA).replace_extension("fastaline"));
     // Stocker les contigs du fichier de test dans un tableau.

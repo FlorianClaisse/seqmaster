@@ -72,7 +72,7 @@ int find_all::parse(const std::vector<std::string_view> &argv) {
 int find_all::usage() {
     cout << "Find All" << endl
          << "Usage :" << endl
-         << "./Contig " << "--findall" << " " << INPUTA << " <path> " << INPUTB << " <path> " << TYPE << " nucl/prot " << OUTPUT << " <path> " << "[" << ACCEPT << " <percentage>" << "]" << " [" << THREADS << " <value>] \n\n"
+         << "./Contig " << "--findall" << " " << INPUTA << " <path> " << INPUTB << " <path> " << TYPE << " nucl/prot " << OUTPUT << " <path> " << "[" << ACCEPT << " <percentage>" << "]" << " [" << THREADS << " <value>]\n\n"
          << "\t" << INPUTA << "\tChemin vers le fichiers qui contient les contigs à trouver.\n\n"
          << "\t" << INPUTB << "\tChemin vers le dossier qui contient les fichiers ou il faut trouver les contigs.\n\n"
          << "\t" << TYPE << "\t\tLe type de fichier (nucl/prot).\n\n"

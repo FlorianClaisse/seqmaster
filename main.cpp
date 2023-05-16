@@ -3,6 +3,7 @@
 #include <string>
 
 #include "FindAll/include/parser.h"
+#include "CodonCount/include/parser.h"
 
 #define FINDALL "--findall"
 #define CODONCOUNT "--codoncount"
@@ -17,7 +18,7 @@ int main(int argc, char* argv[]) {
         vector<string_view> args(argv + 2, argv + argc);
         if (::strcmp(argv[1], "--help") == 0 || ::strcmp(argv[1], "-h") == 0) usage();
         else if (::strcmp(argv[1], FINDALL) == 0) return find_all::parse(args);
-        else if (::strcmp(argv[1], CODONCOUNT) == 0);
+        else if (::strcmp(argv[1], CODONCOUNT) == 0) return codon_count::parse(args);
         else if (::strcmp(argv[1], CONTIGDIFF) == 0);
         else usage();
     } else usage();

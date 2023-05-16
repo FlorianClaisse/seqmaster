@@ -3,7 +3,9 @@ project(Contig)
 
 if (APPLE)
     include_directories(/opt/homebrew/Cellar/libomp/16.0.3/include)
+    include_directories(/usr/local/Cellar/libomp/16.0.3/include)
     find_library(OPENMP_LIB libomp.dylib /opt/homebrew/Cellar/libomp/16.0.3/lib/)
+    find_library(OPENMP_LIB libomp.dylib /usr/local/Cellar/libomp/16.0.3/lib)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
 else()
     find_package(OpenMP REQUIRED)
@@ -18,15 +20,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wunused-parameter -O3")
 
 set(FLIB Foundation)
 set(FALIB FindAll)
-#set(CCLIB CodonCount)
+set(CCLIB CodonCount)
 #set(CDLIB ContigDiff)
 
 set(FSRC ${FLIB}/directory.cpp ${FLIB}/fasta.cpp ${FLIB}/program_option.cpp)
 set(FASRC ${FALIB}/find_all.cpp ${FALIB}/parser.cpp)
-#set(CCSRC ${CCLIB}/condo_count.cpp)
+set(CCSRC ${CCLIB}/condo_count.cpp ${CCLIB}/parser.cpp)
 #set(CDSRC ${CDLIB}/contig_diff.cpp ${CDLIB}/search_algo.cpp FindAll/parser.cpp FindAll/parser.cpp FindAll/include/parser.h)
 
-add_executable(Contig main.cpp ${FSRC} ${FASRC}) # ${CCSRC} ${CDSRC}
+add_executable(Contig main.cpp ${FSRC} ${FASRC} ${CCSRC}) #${CDSRC}
 
 target_link_libraries(Contig LINK_PUBLIC ${OPENMP_LIB})
 

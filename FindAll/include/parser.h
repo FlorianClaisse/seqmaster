@@ -2,8 +2,8 @@
 // Created by Florian Claisse on 15/05/2023.
 //
 
-#ifndef CONTIG_PARSER_H
-#define CONTIG_PARSER_H
+#ifndef CONTIG_FIND_ALL_PARSER_H
+#define CONTIG_FIND_ALL_PARSER_H
 
 #include <vector>
 #include <filesystem>

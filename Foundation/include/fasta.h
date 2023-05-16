@@ -15,7 +15,7 @@ namespace fasta {
     /** Transforme un fichier fasta vers un nouveau fichier en format fastaline. */
     int to_fastaline(const std::filesystem::path &filePath);
     /** Transforme tous les fichiers fasta d'un dossier vers un nouveau fichier au format fastaline. */
-    int directory_to_fasta_line(const std::filesystem::path &directoryPath);
+    int directory_to_fastaline(const std::filesystem::path &directoryPath);
 
     std::map<std::string, std::string> decode_fastaline(const std::filesystem::path &filePath);
 

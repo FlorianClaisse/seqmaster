@@ -6,8 +6,8 @@
 #include <charconv>
 
 #include "include/program_option.h"
-#include "../FindAll/include/find_all.h"
-#include "../CodonCount/condo_count.h"
+//#include "../FindAll/include/find_all.h"
+//#include "../CodonCount/condo_count.h"
 #include "../ContigDiff/contig_diff.h"
 
 using namespace std;

@@ -5,10 +5,10 @@
 #ifndef CONTIG_CONDO_COUNT_H
 #define CONTIG_CONDO_COUNT_H
 
-#include "../Foundation/include/program_option.h"
+#include "parser.h"
 
 namespace codon_count {
-    int start(program_option::CodonCount &options);
+    int main(const codon_count::option &options);
 }
 
 #endif //CONTIG_CONDO_COUNT_H
