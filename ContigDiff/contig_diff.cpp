@@ -21,6 +21,7 @@ namespace fs = std::filesystem;
 namespace contig_diff {
     typedef struct {
         string filename;
+        string contigName;
         string inputB;
         int percentage;
     } Common;
@@ -29,6 +30,7 @@ namespace contig_diff {
     unsigned long find_inside_file(ifstream &test_file, const string &word);
     void check_on_directory(const fs::path &directory_path, map<string, Common> &common);
     void verif_on_directory(const fs::path &directory_path, map<string, Common> &common);
+    void generate_output(const fs::path &directory_path, const map<string, Common> &common);
 }
 
 int contig_diff::main(const contig_diff::option &options) {
@@ -47,6 +49,8 @@ int contig_diff::main(const contig_diff::option &options) {
     // [sub_contig_value, Common]
     map<string, Common> common;
 
+    cout << "Start finding all common inside A.\n";
+
     // Init common with 2 file
     pair<fs::path, fs::path> two_first = directory::two_first_fasta(options.inputA);
     search_with_2_file(two_first.first, two_first.second, common);
@@ -55,16 +59,18 @@ int contig_diff::main(const contig_diff::option &options) {
     for (const auto &path: fs::directory_iterator(options.inputA)) {
         if (path == two_first.first || !directory::is_fastaline_file(path)) continue;
         search_with_2_file(path, two_first.first, common);
-        cout << common.size() << endl;
     }
 
     // Check all possible common inside all file in A.
     check_on_directory(options.inputA, common);
-    cout << common.size() << endl;
-
+    cout << "Finish\nAll common inside A size : " << common.size() << endl;
+    cout << "Start check all common in A with B.\n";
     // Check all common in A with B;
     verif_on_directory(options.inputB, common);
-    cout << common.size() << endl;
+    cout << "Finish\nAll common after check in B size : " << common.size() << endl;
+    cout << "Start Generate output\n";
+    generate_output(options.output, common);
+    cout << "Finish\n";
 
     return EXIT_SUCCESS;
 }
@@ -77,14 +83,14 @@ void contig_diff::search_with_2_file(const fs::path &first_path, const fs::path 
     string first_line_read, contig_name;
     while(getline((*first_file), first_line_read)) {
         if (first_line_read.at(0) == '>') {
-            contig_name = first_line_read.append(" -> " + filename);
+            contig_name = first_line_read;
             contig_name.erase(remove_if(contig_name.begin(), contig_name.end(), [](char c) { return c == '\n' || c == '\r'; }), contig_name.end());
         } else {
             unsigned long size = find_inside_file((*test_file), first_line_read);
             if (size != 0) {
                 string sub = first_line_read.substr(0, size);
                  if (common.find(sub) == common.end()) {
-                     common[sub] = {contig_name, "", 100};
+                     common[sub] = {filename, contig_name, "", 100};
                  }
             }
             if (test_file->eof()) test_file->clear();
@@ -128,7 +134,7 @@ void contig_diff::check_on_directory(const fs::path &directory_path, map<string,
             if (max_size != value.first.size()) {
                 sub = value.first.substr(0, max_size);
                 if (common.find(sub) == common.end() && value_to_add.find(sub) == value_to_add.end() && max_size != 0) {
-                    value_to_add[sub] = {value.second.filename, "", 100};
+                    value_to_add[sub] = {value.second.filename, value.second.contigName, "", 100};
                 }
                 value_to_remove.push_back(value.first);
             }
@@ -172,5 +178,17 @@ void contig_diff::verif_on_directory(const fs::path &directory_path, map<std::st
     }
 }
 
+void contig_diff::generate_output(const fs::path &directory_path, const map<std::string, contig_diff::Common> &common) {
+    string outputPath = directory_path.string().append("/output.txt");
+    ofstream *output = directory::write_open(outputPath, ios::trunc);
+    (*output) << "Filename\tContig name\tContig value\tFind in B\tA - B\n";
+
+    for (const auto &value: common) {
+        (*output) << value.second.filename << "\t" << value.second.contigName << "\t" << value.first << "\t"
+               << value.second.inputB << "\t" << value.first.substr(value.second.inputB.size()) << "\t\n";
+    }
+
+    directory::write_close(output);
+}
 
 
