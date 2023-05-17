@@ -1,0 +1,8 @@
+Codon	Amino acids	Number	Percentage
+ATG	M	1	11.1111%
+CTA	L	1	11.1111%
+CTG	L	1	11.1111%
+GAT	D	1	11.1111%
+GCT	A	1	11.1111%
+GTC	V	3	33.3333%
+TCA	S	1	11.1111%
