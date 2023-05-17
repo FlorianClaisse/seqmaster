@@ -18,17 +18,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wunused-parameter -O3")
 
 ######################### SOURCE ##############################
 
-set(FLIB Foundation)
+set(ULIB Utils)
 set(FALIB FindAll)
 set(CCLIB CodonCount)
 set(CDLIB ContigDiff)
 
-set(FSRC ${FLIB}/directory.cpp ${FLIB}/fasta.cpp)
+set(USRC ${ULIB}/directory.cpp ${ULIB}/fasta.cpp)
 set(FASRC ${FALIB}/find_all.cpp ${FALIB}/parser.cpp)
 set(CCSRC ${CCLIB}/condo_count.cpp ${CCLIB}/parser.cpp)
 set(CDSRC ${CDLIB}/contig_diff.cpp ${CDLIB}/parser.cpp)
 
-add_executable(Contig main.cpp ${FSRC} ${FASRC} ${CCSRC} ${CDSRC})
+add_executable(Contig main.cpp ${USRC} ${FASRC} ${CCSRC} ${CDSRC})
 
 target_link_libraries(Contig LINK_PUBLIC ${OPENMP_LIB})
 

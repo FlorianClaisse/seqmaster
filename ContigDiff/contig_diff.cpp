@@ -5,11 +5,11 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
-#include <omp.h>
 #include <map>
 #include <vector>
-#include "../Foundation/include/fasta.h"
-#include "../Foundation/include/directory.h"
+#include <algorithm>
+#include "../Utils/include/fasta.h"
+#include "../Utils/include/directory.h"
 #include "include/contig_diff.h"
 
 // TODO: Optimisation: MultiThreads

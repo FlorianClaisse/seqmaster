@@ -6,8 +6,8 @@
 #include <filesystem>
 #include <iostream>
 #include <omp.h>
-#include "../Foundation/include/fasta.h"
-#include "../Foundation/include/directory.h"
+#include "../Utils/include/fasta.h"
+#include "../Utils/include/directory.h"
 #include "include/find_all.h"
 
 using namespace std;

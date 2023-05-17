@@ -8,7 +8,7 @@
 #include "include/parser.h"
 #include "include/find_all.h"
 
-#include "../Foundation/include/directory.h"
+#include "../Utils/include/directory.h"
 
 #define INPUTA "--inputA"
 #define INPUTB "--inputB"

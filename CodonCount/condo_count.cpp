@@ -8,8 +8,8 @@
 
 #include "include/condo_count.h"
 
-#include "../Foundation/include/fasta.h"
-#include "../Foundation/include/directory.h"
+#include "../Utils/include/fasta.h"
+#include "../Utils/include/directory.h"
 
 using namespace std;
 namespace fs = std::filesystem;
