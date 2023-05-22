@@ -23,6 +23,7 @@ int fasta::to_fastaline(const std::filesystem::path &filePath) {
     string lineRead;
     bool first(true);
     while(getline(inputFile, lineRead)) {
+        lineRead.erase(remove_if(lineRead.begin(), lineRead.end(), [](char c) { return c == '\n' || c == '\r'; }), lineRead.end());
         if (lineRead.at(0) == '>') {
             if (!first) outputFile << endl;
             outputFile << lineRead << endl;
@@ -107,7 +108,7 @@ void fasta::find_contigs(const fs::path &file_path, const map<string, string> &c
             for (const auto &contig : contigs) {
                 // equalSearch 
                 unsigned long pattern_size(contig.second.size());
-                unsigned long maxError((pattern_size * maxErrorPercentage / 100));
+                unsigned long maxError((pattern_size * maxErrorPercentage) / 100);
                 unsigned long error;
                 for (unsigned long i = 0; i < text_size; i++) {
                     error = 0;
@@ -115,7 +116,7 @@ void fasta::find_contigs(const fs::path &file_path, const map<string, string> &c
                         error += ((pattern_size + i) - text_size);
                         if (error > maxError) break;
                     }
-                    for (unsigned long j = 0; j < pattern_size; j++) {
+                    for (unsigned long j = 0; j < (pattern_size - ((pattern_size + i) - text_size)); j++) {
                         if (line_read[i + j] != contig.second[j]) {
                             error++;
                             if (error > maxError) break;
@@ -125,7 +126,6 @@ void fasta::find_contigs(const fs::path &file_path, const map<string, string> &c
                         if (nucleic) func(contig.first, name, line_read.substr(i, pattern_size), (((double)error) / ((double)pattern_size)) * 100.0);
                         else func(contig.first, name, line_read, (((double)error) / ((double)pattern_size)) * 100.0);
                     }
-
                 }   
             }
         }

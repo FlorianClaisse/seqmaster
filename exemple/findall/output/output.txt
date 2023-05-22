@@ -1,2 +1,0 @@
-Filename
-"BL4_skesa-result.fasta"	>Doc_toxin_phiA_IOEB0205 -> 86.1751%	>TMP7_phiF_UBOOC315001 -> 99.882%	>TerS6_phiF_UBOOC315001 -> 98.7097%	>Ters3_phi_IOEB0608 -> 97.4194%	>IntF -> 99.4269%	>Int_B -> 86.533%	>Int_C -> 84.5272%	

@@ -1,9 +1,0 @@
-Contig Name	Codon	Amino acids	Number	Percentage
->Prot_1	ATG	M	1	16.6667%
->Prot_1	CTG	L	1	16.6667%
->Prot_1	GCT	A	1	16.6667%
->Prot_1	GTC	V	2	33.3333%
->Prot_1	TCA	S	1	16.6667%
->Prot_2	CTA	L	1	33.3333%
->Prot_2	GAT	D	1	33.3333%
->Prot_2	GTC	V	1	33.3333%

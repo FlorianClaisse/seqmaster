@@ -32,7 +32,7 @@ namespace find_all {
 int find_all::parse(const std::vector<std::string_view> &argv) {
     if (argv.size() >= 8 && (argv.size() % 2) == 0) {
         if (argv[0] == INPUTA && argv[2] == INPUTB && argv[4] == TYPE && argv[6] == OUTPUT) {
-            bool accept, thread;
+            bool accept(false), thread(false);
             int acceptValue(100), threadValue(4);
             if (argv.size() >= 10 && argv.size() <= 12) {
                 if (argv[8] == ACCEPT) {
