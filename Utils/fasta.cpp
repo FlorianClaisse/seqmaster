@@ -23,6 +23,7 @@ int fasta::to_fastaline(const std::filesystem::path &filePath) {
     string lineRead;
     bool first(true);
     while(getline(inputFile, lineRead)) {
+        if (lineRead.empty()) continue;
         lineRead.erase(remove_if(lineRead.begin(), lineRead.end(), [](char c) { return c == '\n' || c == '\r'; }), lineRead.end());
         if (lineRead.at(0) == '>') {
             if (!first) outputFile << endl;
