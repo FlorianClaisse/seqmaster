@@ -1,5 +1,13 @@
 # Contig
 
+## Requirements
+
+- gcc >= 11
+- cmake >= 3.4
+- git
+- Seqan >= 3.3.0
+- Sharq > = 1.1.1
+
 ## Find All
 
 ```bash
