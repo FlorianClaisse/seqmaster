@@ -29,43 +29,46 @@ using sequence_types = seqan3::type_list<vector<seqan3::aa27>, string>;
 using sequence_fields = seqan3::fields<seqan3::field::seq, seqan3::field::id>;
 using sequence_record_type = seqan3::sequence_record<sequence_types, sequence_fields>;
 
-template<typename ConfigType>
-unordered_map<string, double> search_in(const fs::path &test_path, const ConfigType &config, const vector<record_type> &records, double error_rate, const fs::path &output) {
-    seqan3::sequence_file_output output1{output / test_path.filename()};
-    seqan3::sequence_file_input<traits_type> test_in{test_path};
+namespace find_all::protein {
+    template<typename ConfigType>
+    unordered_map<string, double> search_in(const fs::path &test_path, const ConfigType &config, const vector<record_type> &records, double error_rate, const fs::path &output) {
+        seqan3::sequence_file_output output1{output / test_path.filename()};
+        seqan3::sequence_file_input<traits_type> test_in{test_path};
 
-    vector<record_type> test_records;
-    ranges::copy(test_in, back_inserter(test_records));
+        vector<record_type> test_records;
+        ranges::copy(test_in, back_inserter(test_records));
 
-    unordered_map<string, double> results;
-    for (const auto &record: records) {
-        long best_score{LONG_MIN}, index{-1};
-        for (long i = 0; i < test_records.size(); i++) {
-            auto result = seqan3::align_pairwise(std::tie(record.sequence(), test_records[i].sequence()), config);
-            auto &res = *result.begin();
-            if (res.score() > best_score) {
-                best_score = res.score();
-                index = i;
+        unordered_map<string, double> results;
+        for (const auto &record: records) {
+            long best_score{LONG_MIN}, index{-1};
+            for (long i = 0; i < test_records.size(); i++) {
+                auto result = seqan3::align_pairwise(std::tie(record.sequence(), test_records[i].sequence()), config);
+                auto &res = *result.begin();
+                if (res.score() > best_score) {
+                    best_score = res.score();
+                    index = i;
+                    if (best_score == 0) break;
+                }
+            }
+            if (best_score != LONG_MIN) {
+                double error = (double)(100 * abs(best_score)) / test_records[index].sequence().size();
+                if (error <= error_rate) {
+                    results[record.id()] = (100 - error);
+                    sequence_record_type write_record{best_record->sequence(), test_records[index].id() + " -> " + record.id() + " -> " + to_string(100 - error) + "%"};
+                    output1.push_back(write_record);
+                }
             }
         }
-        if (best_score != LONG_MIN) {
-            double error = (double)(100 * abs(best_score)) / test_records[index].sequence().size();
-            if (error <= error_rate) {
-                results[record.id()] = (100 - error);
-                sequence_record_type write_record{record.sequence(), test_records[index].id() + " -> " + record.id() + " -> " + to_string(100 - error) + "%"};
-                output1.push_back(write_record);
-            }
-        }
+        seqan3::debug_stream << results << '\n';
+        return results;
     }
-    seqan3::debug_stream << results << '\n';
-    return results;
-}
 
-ofstream* start_output(const fs::path &output) {
-    ofstream *fout = file::write_open(output, ios::trunc);
+    ofstream* start_output(const fs::path &output) {
+        ofstream *fout = file::write_open(output, ios::trunc);
 
-    (*fout) << "Filename\n";
-    return fout;
+        (*fout) << "Filename\n";
+        return fout;
+    }
 }
 
 void find_all::protein::search(const fs::path &inputA, const fs::path &inputB, const fs::path &output, int accept, int threads) {
@@ -97,6 +100,7 @@ void find_all::protein::search(const fs::path &inputA, const fs::path &inputB, c
             for (const auto &value: results) {
                 (*fout) << "\t" << value.first << " -> " << value.second << "%";
             }
+            (*fout) << '\n';
         }
     }
 
