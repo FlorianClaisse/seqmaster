@@ -2,16 +2,16 @@
 
 ## Requirements
 
-| Requirement                  | Version  |
-| ---------------------------- | -------- |
+|         Requirement          | Version  |
+|:----------------------------:|:--------:|
 | [Ubuntu](https://ubuntu.com) | >= 20.04 |
-| [GCC](https://gcc.gnu.org)   | >= 11.3  |
-| [CMake](https://cmake.org)   | >= 3.4   |
+|  [GCC](https://gcc.gnu.org)  | >= 11.3  |
+|  [CMake](https://cmake.org)  |  >= 3.4  |
 
 ## Dependencies
 
-| Libs                                                  | Version  |
-| ----------------------------------------------------- | -------- |
+|                         Libs                          | Version  |
+|:-----------------------------------------------------:|:--------:|
 | [seqan3](https://github.com/seqan/seqan3/tree/master) | >= 1.1.0 |
 | [sharg-parser](https://github.com/seqan/sharg-parser) | >= 3.2.0 |
 

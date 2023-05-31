@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "../Utils/include/directory.h"
+#include "../Utils/include/file.h"
 
 #include "include/contig_diff.h"
 #include "include/cent_percent.h"
@@ -29,7 +30,7 @@ map<string, contig_diff::Common> contig_diff::cent_percent::main(const contig_di
     search_with_2_file(two_first.first, two_first.second, common);
 
     for (const auto &path: fs::directory_iterator(options.inputA)) {
-        if (path == two_first.first || !directory::is_fastaline_file(path)) continue;
+        if (path == two_first.first || !file::is_fasta(path)) continue;
         search_with_2_file(path, two_first.first, common);
     }
 
@@ -46,8 +47,8 @@ map<string, contig_diff::Common> contig_diff::cent_percent::main(const contig_di
 
 void contig_diff::cent_percent::search_with_2_file(const fs::path &first_path, const fs::path &second_path, map<string, contig_diff::Common> &common) {
     string filename = first_path.stem();
-    ifstream *first_file = directory::read_open(first_path);
-    ifstream *test_file = directory::read_open(second_path);
+    ifstream *first_file = file::read_open(first_path);
+    ifstream *test_file = file::read_open(second_path);
 
     string first_line_read, contig_name;
     while(getline((*first_file), first_line_read)) {
@@ -65,8 +66,8 @@ void contig_diff::cent_percent::search_with_2_file(const fs::path &first_path, c
         }
     }
 
-    directory::read_close(test_file);
-    directory::read_close(first_file);
+    file::read_close(test_file);
+    file::read_close(first_file);
 }
 
 unsigned long contig_diff::cent_percent::find_inside_file(ifstream &test_file, const string &word) {
@@ -92,8 +93,8 @@ void contig_diff::cent_percent::check_on_directory(const fs::path &directory_pat
     vector<string> value_to_remove;
     map<string, Common> value_to_add;
     for (const auto &path: fs::directory_iterator(directory_path)) {
-        if (!directory::is_fastaline_file(path)) continue;
-        current_file = directory::read_open(path);
+        if (!file::is_fasta(path)) continue;
+        current_file = file::read_open(path);
         // Check all common in one file
         for (const auto &value: common) {
             max_size = find_inside_file((*current_file), value.first);
@@ -108,7 +109,7 @@ void contig_diff::cent_percent::check_on_directory(const fs::path &directory_pat
             if (current_file->eof()) current_file->clear();
             current_file->seekg(0, ios::beg);
         }
-        directory::read_close(current_file);
+        file::read_close(current_file);
 
         for (const auto &value: value_to_remove) {
             common.erase(value);
@@ -127,8 +128,8 @@ void contig_diff::cent_percent::verif_on_directory(const fs::path &directory_pat
     ifstream *current_file;
     string sub;
     for (const auto &path: fs::directory_iterator(directory_path)) {
-        if (!directory::is_fastaline_file(path)) continue;
-        current_file = directory::read_open(path);
+        if (!file::is_fasta(path)) continue;
+        current_file = file::read_open(path);
         // Check all common in one file
         for (auto &value: common) {
             max_size = find_inside_file((*current_file), value.first);
@@ -140,6 +141,6 @@ void contig_diff::cent_percent::verif_on_directory(const fs::path &directory_pat
             if (current_file->eof()) current_file->clear();
             current_file->seekg(0, ios::beg);
         }
-        directory::read_close(current_file);
+        file::read_close(current_file);
     }
 }

@@ -4,9 +4,12 @@
 
 #include <iostream>
 
-#include "include/find_all.h"
-#include "include/protein.h"
-#include "include/nucleic.h"
+#include "include/find_all.hpp"
+#include "include/search.hpp"
+
+#include <seqan3/alignment/configuration/all.hpp>
+#include <seqan3/alignment/scoring/all.hpp>
+#include <seqan3/io/sequence_file/all.hpp>
 
 #include "../Utils/include/termcolor.hpp"
 #include "../Utils/include/file.h"
@@ -40,12 +43,30 @@ int find_all::main(const fs::path &inputA, const fs::path &inputB, const fs::pat
 
     if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
 
-    if (type == NUCL)
-        nucleic::search(inputA, inputB, output, accept, threads);
-    else if (type == PROT)
-        protein::search(inputA, inputB, output, accept, threads);
-    else
-        return error_message("You just gave an invalid type. That's not very clever.\n");
+    param options = {inputA, inputB, output, (type == NUCL), (100 - accept), threads};
 
+    if (options.nucl) {
+        seqan3::configuration const config = seqan3::align_cfg::method_global{
+                seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
+                seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
+                                             | seqan3::align_cfg::scoring_scheme{seqan3::nucleotide_scoring_scheme{
+                seqan3::match_score{0},
+                seqan3::mismatch_score{-1}}};
+        using traits_t = seqan3::sequence_file_input_default_traits_dna;
+        find_all::search<traits_t>(options, config);
+    } else {
+        seqan3::configuration const config = seqan3::align_cfg::method_global{
+                seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
+                seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
+                                             | seqan3::align_cfg::scoring_scheme{seqan3::aminoacid_scoring_scheme{
+                seqan3::match_score{0},
+                seqan3::mismatch_score{-1}}};
+        using traits_t = seqan3::sequence_file_input_default_traits_aa;
+        find_all::search<traits_t>(options, config);
+    }
     return 0;
 }

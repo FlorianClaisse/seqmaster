@@ -2,8 +2,8 @@
 // Created by Florian Claisse on 22/05/2023.
 //
 
-#ifndef CONTIG_PROTEIN_H
-#define CONTIG_PROTEIN_H
+#ifndef CONTIG_PROTEIN_HPP
+#define CONTIG_PROTEIN_HPP
 
 #include <unordered_map>
 #include <vector>
@@ -14,4 +14,4 @@ namespace protein {
     extern const std::vector<std::string> codon_list;
 }
 
-#endif //CONTIG_PROTEIN_H
+#endif //CONTIG_PROTEIN_HPP

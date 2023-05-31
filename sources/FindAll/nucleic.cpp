@@ -2,7 +2,7 @@
 // Created by Florian Claisse on 26/05/2023.
 //
 
-#include "include/nucleic.h"
+#include "include/nucleic.hpp"
 
 #include <string>
 #include <ranges>
@@ -63,6 +63,7 @@ namespace find_all::nucleic {
             long best_score{LONG_MIN}, index{-1};
             tuple<long, long> best_position;
             for (long i = 0; i < test_records.size(); i++) {
+                auto test = record.sequence()[5];
                 auto result = seqan3::align_pairwise(std::tie(record.sequence(), test_records[i].sequence()), config);
                 auto &res = *result.begin();
                 if (res.score() > best_score) {

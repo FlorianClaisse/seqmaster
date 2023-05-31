@@ -51,3 +51,29 @@ bool file::have_extension(const std::filesystem::path &path, const std::vector<s
 bool file::is_fasta(const std::filesystem::path &path) {
     return have_extension(path, seqan3::format_fasta::file_extensions);
 }
+
+int file::to_fastaline(const std::filesystem::path &filePath) {
+    ifstream inputFile;
+    inputFile.open(filePath);
+
+    ofstream outputFile(fs::path(filePath).replace_extension("fastaline"), ios::trunc);
+
+    string lineRead;
+    bool first(true);
+    while(getline(inputFile, lineRead)) {
+        if (lineRead.empty()) continue;
+        lineRead.erase(remove_if(lineRead.begin(), lineRead.end(), [](char c) { return c == '\n' || c == '\r'; }), lineRead.end());
+        if (lineRead.at(0) == '>') {
+            if (!first) outputFile << endl;
+            outputFile << lineRead << endl;
+            if (first) first = false;
+        } else {
+            transform(lineRead.begin(), lineRead.end(), lineRead.begin(), ::toupper);
+            outputFile << lineRead;
+        }
+    }
+
+    inputFile.close();
+    outputFile.close();
+    return EXIT_SUCCESS;
+}

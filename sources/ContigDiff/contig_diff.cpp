@@ -12,6 +12,7 @@
 
 #include "../Utils/include/fasta.h"
 #include "../Utils/include/directory.h"
+#include "../Utils/include/file.h"
 
 #include "include/contig_diff.h"
 #include "include/cent_percent.h"
@@ -125,7 +126,7 @@ int contig_diff::main(const std::filesystem::path &inputA, const std::filesystem
 
 void contig_diff::generate_output(const fs::path &directory_path, const map<std::string, contig_diff::Common> &common) {
     string outputPath = directory_path.string().append("/output.txt");
-    ofstream *output = directory::write_open(outputPath, ios::trunc);
+    ofstream *output = file::write_open(outputPath, ios::trunc);
     (*output) << "Filename\tContig name\tContig value\tPercentage\tFind in B\tA - B\n";
 
     for (const auto &value: common) {
@@ -137,7 +138,7 @@ void contig_diff::generate_output(const fs::path &directory_path, const map<std:
                   << value.first.substr(value.second.inputB.size()) << "\t\n";
     }
 
-    directory::write_close(output);
+    file::write_close(output);
 }
 
 

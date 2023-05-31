@@ -12,7 +12,7 @@
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
-#include "include/protein.h"
+#include "include/protein.hpp"
 
 #include "../Utils/include/file.h"
 
@@ -54,7 +54,7 @@ namespace find_all::protein {
                 double error = (double)(100 * abs(best_score)) / test_records[index].sequence().size();
                 if (error <= error_rate) {
                     results[record.id()] = (100 - error);
-                    sequence_record_type write_record{best_record->sequence(), test_records[index].id() + " -> " + record.id() + " -> " + to_string(100 - error) + "%"};
+                    sequence_record_type write_record{test_records[index].sequence(), test_records[index].id() + " -> " + record.id() + " -> " + to_string(100 - error) + "%"};
                     output1.push_back(write_record);
                 }
             }

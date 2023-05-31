@@ -11,7 +11,7 @@
 #include "include/parser.h"
 #include "include/termcolor.hpp"
 
-#include "../FindAll/include/find_all.h"
+#include "../FindAll/include/find_all.hpp"
 #include "../CodonCount/include/condo_count.h"
 #include "../ContigDiff/include/contig_diff.h"
 
