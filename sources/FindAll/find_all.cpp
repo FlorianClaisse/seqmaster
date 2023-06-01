@@ -3,16 +3,15 @@
 //
 
 #include <iostream>
+#include <thread>
 
 #include "include/find_all.hpp"
 #include "include/search.hpp"
 
 #include <seqan3/alignment/configuration/all.hpp>
-#include <seqan3/alignment/scoring/all.hpp>
 #include <seqan3/io/sequence_file/all.hpp>
 
 #include "../Utils/include/termcolor.hpp"
-#include "../Utils/include/file.h"
 #include "../Utils/include/directory.h"
 
 #define NUCL "nucl"
@@ -21,16 +20,21 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int error_message(const string &message) {
+namespace find_all {
+    int error_message(const string &message);
+    int check_options(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads);
+}
+
+int find_all::error_message(const string &message) {
     cout << termcolor::red << termcolor::bold
          << message
          << termcolor::reset;
     return -1;
 }
 
-int check_options(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
+int find_all::check_options(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
     if (threads <= 0) return error_message("You want to run the program on a number of threads less than or equal to 0, go try again ;).\n");
-    if (type != PROT && type != NUCL) return error_message("For the type, the value must be \"prit\" or \"nucl\" did you read the docs ?.\n");
+    if (type != PROT && type != NUCL) return error_message("For the type, the value must be \"prot\" or \"nucl\" did you read the docs ?.\n");
     if (accept < 0 || accept > 100) return error_message("You just gave an acceptance percentage lower than 0 or higher than 100. That's not very clever.\n");
     if (!file::is_fasta(inputA)) return error_message("You need to give fasta file in inputA. Did you really read the doc.\n");
     if (!is_directory(inputB)) return error_message("Input B is not a folder or does not exist. Try again the next one is the right one.\n");
@@ -47,13 +51,14 @@ int find_all::main(const fs::path &inputA, const fs::path &inputB, const fs::pat
 
     if (options.nucl) {
         seqan3::configuration const config = seqan3::align_cfg::method_global{
-                seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
-                seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
-                seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
-                seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
+                                                seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
+                                                seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
+                                                seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
+                                                seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
                                              | seqan3::align_cfg::scoring_scheme{seqan3::nucleotide_scoring_scheme{
-                seqan3::match_score{0},
-                seqan3::mismatch_score{-1}}};
+                                                                                    seqan3::match_score{0},
+                                                                                    seqan3::mismatch_score{-1}}}
+                                             | seqan3::align_cfg::parallel{4};
         using traits_t = seqan3::sequence_file_input_default_traits_dna;
         find_all::search<traits_t>(options, config);
     } else {
@@ -64,7 +69,8 @@ int find_all::main(const fs::path &inputA, const fs::path &inputB, const fs::pat
                 seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
                                              | seqan3::align_cfg::scoring_scheme{seqan3::aminoacid_scoring_scheme{
                 seqan3::match_score{0},
-                seqan3::mismatch_score{-1}}};
+                seqan3::mismatch_score{-1}}}
+                                               | seqan3::align_cfg::parallel{8};
         using traits_t = seqan3::sequence_file_input_default_traits_aa;
         find_all::search<traits_t>(options, config);
     }

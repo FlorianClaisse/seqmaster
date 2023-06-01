@@ -14,6 +14,7 @@
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/alignment/pairwise/align_pairwise.hpp>
+#include <seqan3/alignment/configuration/all.hpp>
 #include <seqan3/alphabet/all.hpp>
 
 #include "../../Utils/include/file.h"
@@ -51,19 +52,23 @@ namespace find_all {
         std::ranges::copy(test_in, back_inserter(test_records));
 
         std::unordered_map<std::string, double> results;
+        using pair_t = decltype(std::tie(records[0].sequence(), records[0].sequence()));
         for (const auto &record : records) {
-            long best_score{LONG_MIN}, index{-1}, best_start{-1}, best_end{-1};
+            std::vector<pair_t> source;
             for (long i = 0; i < test_records.size(); i++) {
-                auto result = seqan3::align_pairwise(tie(record.sequence(), test_records[i].sequence()), config);
-                auto &res = *result.begin();
+                source.push_back(std::tie(record.sequence(), test_records[i].sequence()));
+            }
+
+            long best_score{LONG_MIN}, index{-1}, best_start{-1}, best_end{-1};
+            for (const auto &res : seqan3::align_pairwise(source, config)) {
                 if (res.score() > best_score) {
                     best_score = res.score();
-                    index = i;
+                    index = res.sequence2_id();
                     best_start = res.sequence2_begin_position();
                     best_end = res.sequence2_end_position();
-                    if (best_score == 0) break;
                 }
             }
+
             if (best_score != LONG_MIN) {
                 double error = ((double)(100 * abs(best_score))) / test_records[index].sequence().size();
                 if (error <= options.error_rate) {

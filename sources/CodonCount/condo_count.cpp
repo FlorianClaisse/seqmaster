@@ -8,7 +8,6 @@
 
 #include "include/condo_count.h"
 
-#include "../Utils/include/fasta.h"
 #include "../Utils/include/directory.h"
 
 using namespace std;

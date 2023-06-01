@@ -7,7 +7,7 @@
 
 #include "../Utils/include/directory.h"
 
-#include "include/other_percent.h"
+
 
 using namespace std;
 namespace fs = std::filesystem;

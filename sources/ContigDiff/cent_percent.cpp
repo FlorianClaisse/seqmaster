@@ -10,12 +10,12 @@
 #include "../Utils/include/file.h"
 
 #include "include/contig_diff.h"
-#include "include/cent_percent.h"
+
 
 using namespace std;
 namespace fs = std::filesystem;
 
-namespace contig_diff::cent_percent {
+/*namespace contig_diff::cent_percent {
     void search_with_2_file(const fs::path &first_path, const fs::path &second_path, map <string, Common> &common);
     unsigned long find_inside_file(ifstream &test_file, const string &word);
     void check_on_directory(const fs::path &directory_path, map<string, Common> &common);
@@ -143,4 +143,4 @@ void contig_diff::cent_percent::verif_on_directory(const fs::path &directory_pat
         }
         file::read_close(current_file);
     }
-}
+}*/

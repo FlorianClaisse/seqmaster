@@ -2,34 +2,74 @@
 // Created by Florian Claisse on 10/05/2023.
 //
 
-#include <iostream>
-#include <filesystem>
-#include <fstream>
-#include <map>
-#include <vector>
-#include <array>
-#include <algorithm>
-
-#include "../Utils/include/fasta.h"
-#include "../Utils/include/directory.h"
-#include "../Utils/include/file.h"
-
 #include "include/contig_diff.h"
-#include "include/cent_percent.h"
-#include "include/other_percent.h"
+#include "include/search.hpp"
 
-// TODO: Optimisation: MultiThreads
-// TODO: Amelioreation: Prendre en compte un pourcentage different de 100%
+#include "../Utils/include/termcolor.hpp"
+#include "../Utils/include/directory.h"
+
+#define PROT "prot"
+#define NUCL "nucl"
 
 using namespace std;
 namespace fs = std::filesystem;
 
 namespace contig_diff {
-    void generate_output(const fs::path &directory_path, const map<string, Common> &common);
+    int error_message(const string &message);
+    int check_options(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads);
 }
 
-int contig_diff::main(const std::filesystem::path &inputA, const std::filesystem::path &inputB, const std::filesystem::path &output,
-                      const std::string &type, int accept, int threads) {
+int contig_diff::error_message(const string &message) {
+    cout << termcolor::red << termcolor::bold
+         << message
+         << termcolor::reset;
+    return -1;
+}
+
+int contig_diff::check_options(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
+    if (threads <= 0) return error_message("You want to run the program on a number of threads less than or equal to 0, go try again ;).\n");
+    if (type != PROT && type != NUCL) return error_message("For the type, the value must be \"prot\" or \"nucl\" did you read the docs ?.\n");
+    if (accept < 0 || accept > 100) return error_message("You just gave an acceptance percentage lower than 0 or higher than 100. That's not very clever.\n");
+    if (!is_directory(inputA)) return error_message("Input A is not a folder or does not exist. Try again the next one is the right one.\n");
+    if (!is_directory(inputB)) return error_message("Input B is not a folder or does not exist. Try again the next one is the right one.\n");
+    if(!directory::create_directories(output)) return error_message("Unable to find/create the output folder are you sure you have given a valid path.\n");
+
+    return 0;
+}
+
+int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
+
+    if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
+
+    int nb_fasta = directory::count_fasta_file(inputA);
+    if (nb_fasta < 2) {
+        cout << "Il faut au minimum deux fichiers de type fasta dans le dossier A.\n";
+        return -1;
+    }
+    nb_fasta = directory::count_fasta_file(inputB);
+    if (nb_fasta < 1) {
+        cout << "Il faut au minimum 1 fichier de type fasta dans le dossier B.\n";
+        return -1;
+    }
+
+    param options = {inputA, inputB, output, (type == NUCL), (100 - accept), threads};
+
+    seqan3::configuration const config = seqan3::align_cfg::method_global{
+            seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
+            seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
+            seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
+            seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
+                                         | seqan3::align_cfg::scoring_scheme{seqan3::nucleotide_scoring_scheme{
+            seqan3::match_score{0},
+            seqan3::mismatch_score{-1}}};
+                                         //| seqan3::align_cfg::parallel{8};
+
+    cout << "Start all common in A.\n";
+    auto two_first = directory::two_first_fasta(options.inputA);
+    contig_diff::search_with_2_files<seqan3::sequence_file_input_default_traits_dna>(two_first.first, two_first.second, options, config);
+
+    return 0;
+
     /*cout << "Convert input A file's to fastaline.\n";
     fasta::directory_to_fastaline(options.inputA);
 
@@ -124,7 +164,7 @@ int contig_diff::main(const std::filesystem::path &inputA, const std::filesystem
     return {(max_size + 1), percentage};
 }*/
 
-void contig_diff::generate_output(const fs::path &directory_path, const map<std::string, contig_diff::Common> &common) {
+/*void contig_diff::generate_output(const fs::path &directory_path, const map<std::string, contig_diff::Common> &common) {
     string outputPath = directory_path.string().append("/output.txt");
     ofstream *output = file::write_open(outputPath, ios::trunc);
     (*output) << "Filename\tContig name\tContig value\tPercentage\tFind in B\tA - B\n";
@@ -139,6 +179,6 @@ void contig_diff::generate_output(const fs::path &directory_path, const map<std:
     }
 
     file::write_close(output);
-}
+}*/
 
 
