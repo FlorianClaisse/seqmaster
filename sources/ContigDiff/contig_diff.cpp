@@ -46,15 +46,7 @@ int start_search(const contig_diff::param &options, const config_t &config) {
     seqan3::sequence_file_output f_out{options.output / FIND_COMMON};
 
     cout << "Start all common in A.\n";
-
-    auto two_first = directory::two_first_fasta(options.inputA);
-    contig_diff::search_with_2_files<traits_t>(two_first.first, two_first.second, options, config, f_out);
-
-    for (const auto &path: fs::directory_iterator(options.inputA)) {
-        if (!file::is_fasta(path)) continue;
-        if (path.path() == two_first.first) continue;
-        contig_diff::search_with_2_files<traits_t>(path, two_first.first, options, config, f_out);
-    }
+    contig_diff::search_common<traits_t>(options.inputA, options, config);
 
     return 0;
 }

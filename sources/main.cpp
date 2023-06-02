@@ -11,14 +11,7 @@
 #include <seqan3/core/debug_stream.hpp>
 
 int main(int argc, const char* argv[]) {
-    std::vector<seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna>::record_type> records;
-
-    for (const auto &path: std::filesystem::directory_iterator(argv[1])) {
-        seqan3::sequence_file_input<seqan3::sequence_file_input_default_traits_dna> f_in{path};
-        std::ranges::copy(f_in, std::back_inserter(records));
-    }
-
-    //parser::parse(argc, argv);
+    parser::parse(argc, argv);
 
     return EXIT_SUCCESS;
 }
