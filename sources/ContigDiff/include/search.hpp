@@ -89,6 +89,24 @@ namespace contig_diff {
             add_to(output, value.first, value.second);
         }
     }
+
+    template<typename traits_t, typename config_t>
+    void check_common(const path &input, const path &dir, const config_t &config) {
+        seqan3::sequence_file_input<traits_t> f_in{input};
+
+        using record_t = decltype(f_in)::record_type;
+        vector<record_t> records;
+        std::ranges::copy(f_in, std::back_inserter(records));
+
+        for (const auto record: records) {
+            for (const auto &test_path: std::filesystem::directory_iterator(dir)) {
+                vector<record_t> test_records;
+                std::ranges::copy(f_in, std::back_inserter(test_records));
+
+
+            }
+        }
+    }
 }
 
 
