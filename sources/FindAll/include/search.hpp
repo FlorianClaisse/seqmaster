@@ -70,7 +70,7 @@ namespace find_all {
             }
 
             if (best_score != LONG_MIN) {
-                double error = ((double)(100 * abs(best_score))) / test_records[index].sequence().size();
+                double error = ((double)(100 * abs(best_score))) / record.sequence().size();
                 if (error <= options.error_rate) {
                     results[record.id()] = (100 - error);
                     std::string contigName{test_records[index].id() + " -> " + record.id() + " -> " + std::to_string(100 - error) + "%"};

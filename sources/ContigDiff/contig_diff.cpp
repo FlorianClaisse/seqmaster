@@ -7,9 +7,12 @@
 
 #include "../Utils/include/termcolor.hpp"
 #include "../Utils/include/directory.h"
+#include "../Utils/include/file.h"
 
 #define PROT "prot"
 #define NUCL "nucl"
+
+#define FIND_COMMON "find_common.fasta"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -37,6 +40,25 @@ int contig_diff::check_options(const fs::path &inputA, const fs::path &inputB, c
     return 0;
 }
 
+template<typename traits_t, typename config_t>
+int start_search(const contig_diff::param &options, const config_t &config) {
+
+    seqan3::sequence_file_output f_out{options.output / FIND_COMMON};
+
+    cout << "Start all common in A.\n";
+
+    auto two_first = directory::two_first_fasta(options.inputA);
+    contig_diff::search_with_2_files<traits_t>(two_first.first, two_first.second, options, config, f_out);
+
+    for (const auto &path: fs::directory_iterator(options.inputA)) {
+        if (!file::is_fasta(path)) continue;
+        if (path.path() == two_first.first) continue;
+        contig_diff::search_with_2_files<traits_t>(path, two_first.first, options, config, f_out);
+    }
+
+    return 0;
+}
+
 int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
 
     if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
@@ -54,19 +76,35 @@ int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::
 
     param options = {inputA, inputB, output, (type == NUCL), (100 - accept), threads};
 
-    seqan3::configuration const config = seqan3::align_cfg::method_global{
-            seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
-            seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
-            seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
-            seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
-                                         | seqan3::align_cfg::scoring_scheme{seqan3::nucleotide_scoring_scheme{
-            seqan3::match_score{0},
-            seqan3::mismatch_score{-1}}};
-                                         //| seqan3::align_cfg::parallel{8};
+    if (options.nucl) {
+        seqan3::configuration const config = seqan3::align_cfg::method_global{
+                seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
+                seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
+                                             | seqan3::align_cfg::scoring_scheme{seqan3::nucleotide_scoring_scheme{
+                seqan3::match_score{0},
+                seqan3::mismatch_score{-1}}}
+        | seqan3::align_cfg::parallel{static_cast<uint32_t>(options.threads)};
 
-    cout << "Start all common in A.\n";
-    auto two_first = directory::two_first_fasta(options.inputA);
-    contig_diff::search_with_2_files<seqan3::sequence_file_input_default_traits_dna>(two_first.first, two_first.second, options, config);
+        using traits_t = seqan3::sequence_file_input_default_traits_dna;
+
+        start_search<traits_t>(options, config);
+    } else {
+        seqan3::configuration const config = seqan3::align_cfg::method_global{
+                seqan3::align_cfg::free_end_gaps_sequence1_leading{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_leading{true},
+                seqan3::align_cfg::free_end_gaps_sequence1_trailing{false},
+                seqan3::align_cfg::free_end_gaps_sequence2_trailing{true}}
+                                             | seqan3::align_cfg::scoring_scheme{seqan3::aminoacid_scoring_scheme{
+                seqan3::match_score{0},
+                seqan3::mismatch_score{-1}}}
+        | seqan3::align_cfg::parallel{static_cast<uint32_t>(options.threads)};
+
+        using traits_t = seqan3::sequence_file_input_default_traits_aa;
+
+        start_search<traits_t>(options, config);
+    }
 
     return 0;
 
