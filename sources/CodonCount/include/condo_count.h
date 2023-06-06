@@ -6,7 +6,6 @@
 #define CONTIG_CONDO_COUNT_H
 
 #include <filesystem>
-#include "parser.h"
 
 namespace codon_count {
     int main(const std::filesystem::path &input, const std::filesystem::path &output);

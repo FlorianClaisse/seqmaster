@@ -46,7 +46,9 @@ int start_search(const contig_diff::param &options, const config_t &config) {
     seqan3::sequence_file_output f_out{options.output / FIND_COMMON};
 
     cout << "Start all common in A.\n";
-    contig_diff::search_common<traits_t>(options.inputA, options, config);
+    contig_diff::Search<traits_t, config_t> search(options, config);
+
+    search.search_common(options.inputA);
 
     return 0;
 }
