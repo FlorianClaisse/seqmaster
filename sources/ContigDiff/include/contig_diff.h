@@ -10,7 +10,7 @@
 namespace contig_diff {
 
     int main(const std::filesystem::path &inputA, const std::filesystem::path &inputB, const std::filesystem::path &output,
-             const std::string &type, int accept, int threads);
+             const std::string &type, int accept, int threads, unsigned long min_size);
 
     struct param {
         std::filesystem::path inputA;
@@ -19,6 +19,7 @@ namespace contig_diff {
         bool nucl;
         int error_rate;
         int threads;
+        unsigned long min_size;
     };
 }
 

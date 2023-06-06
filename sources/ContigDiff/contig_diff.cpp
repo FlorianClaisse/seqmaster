@@ -35,7 +35,7 @@ int contig_diff::check_options(const fs::path &inputA, const fs::path &inputB, c
     if (accept < 0 || accept > 100) return error_message("You just gave an acceptance percentage lower than 0 or higher than 100. That's not very clever.\n");
     if (!is_directory(inputA)) return error_message("Input A is not a folder or does not exist. Try again the next one is the right one.\n");
     if (!is_directory(inputB)) return error_message("Input B is not a folder or does not exist. Try again the next one is the right one.\n");
-    if(!directory::create_directories(output)) return error_message("Unable to find/create the output folder are you sure you have given a valid path.\n");
+    if (!directory::create_directories(output)) return error_message("Unable to find/create the output folder are you sure you have given a valid path.\n");
 
     return 0;
 }
@@ -53,7 +53,7 @@ int start_search(const contig_diff::param &options, const config_t &config) {
     return 0;
 }
 
-int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
+int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads, unsigned long min_size) {
 
     if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
 
@@ -68,7 +68,7 @@ int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::
         return -1;
     }
 
-    param options = {inputA, inputB, output, (type == NUCL), (100 - accept), threads};
+    param options = {inputA, inputB, output, (type == NUCL), (100 - accept), threads, min_size};
 
     if (options.nucl) {
         seqan3::configuration const config = seqan3::align_cfg::method_global{

@@ -40,6 +40,7 @@ struct contigdiff_argument {
     string type;
     int accept{100};
     int threads{4};
+    unsigned long min_size{2};
 };
 
 void init_contig_diff(sharg::parser &parser, contigdiff_argument &args) {
@@ -74,6 +75,10 @@ void init_contig_diff(sharg::parser &parser, contigdiff_argument &args) {
     parser.add_option(args.threads,
                       sharg::config{.long_id = "threads",
                                     .description = "Sets the number of threads the program can use"});
+
+    parser.add_option(args.min_size,
+                      sharg::config{.long_id = "minsize",
+                                    .description = "Set the minimum size of sequences to find"});
 }
 
 int run_contig_diff(sharg::parser &parser) {
@@ -83,7 +88,7 @@ int run_contig_diff(sharg::parser &parser) {
 
     try {
         parser.parse();
-        return contig_diff::main(args.inputA, args.inputB, args.output, args.type, args.accept, args.threads);
+        return contig_diff::main(args.inputA, args.inputB, args.output, args.type, args.accept, args.threads, args.min_size);
     } catch (sharg::parser_error const &ext) {
         std::cerr << termcolor::red << termcolor::bold
                   << "You managed to find" << CONTIG_DIFF << ", it was already difficult, wasn't it?.\n"

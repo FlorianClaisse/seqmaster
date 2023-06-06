@@ -44,6 +44,69 @@ namespace contig_diff {
 
     public:
         void search_common(const std::filesystem::path &dir) {
+            directory::create_directories(options.output / (dir.filename()));
+
+            seqan3::sequence_file_output common_out{options.output / (dir.filename().string() + "-common.fasta")};
+
+            std::vector<std::vector<record_t>> all_records;
+            directory::decode_all_fasta<traits_t>(dir, all_records);
+
+            for(unsigned long i = 0; i < all_records.size(); i++) {
+                long contig_counter{0};
+                for (const auto record: all_records[i]) {
+                    show_progress((i+1), all_records.size(), ++contig_counter, all_records[i].size());
+
+                    long max_error = (record.sequence().size() * options.error_rate) / 100;
+
+                    double best_percentage{MAXFLOAT};
+                    long best_start{-1}, best_end{-1};
+                    std::pair<long, long> best_index;
+                    for (unsigned long j = 0; j < all_records.size(); j++) {
+                        if (j == i) continue;
+
+                        std::vector<pair_t> source;
+                        for (auto &test_record: all_records[j])
+                            source.push_back(std::tie(record.sequence(), test_record.sequence()));
+
+                        long best_nb_error{LONG_MAX}, current_best_index{-1}, current_best_start{-1}, current_best_end{-1};
+                        for (const auto &res: seqan3::align_pairwise(source, config)) {
+                            long nb_error = abs(res.score());
+
+                            if (nb_error <= max_error && nb_error < best_nb_error) {
+                                best_nb_error = nb_error;
+                                current_best_index = res.sequence2_id();
+                                current_best_start = res.sequence2_begin_position();
+                                current_best_end = res.sequence2_end_position();
+                            }
+                        }
+
+                        if (best_nb_error != LONG_MAX) {
+                            double error = ((double)(100 * best_nb_error)) / record.sequence().size();
+                            if (error < best_percentage) {
+                                best_percentage = error;
+                                best_start = current_best_start;
+                                best_end = current_best_end;
+                                best_index = {j, current_best_index};
+                            }
+                        } else {
+                            best_percentage = -1;
+                            break;
+                        }
+                    }
+
+                    if (best_percentage != -1) { // Subsequence found inside all file
+                        auto best_record = all_records[best_index.first][best_index.second];
+                        auto best_sub = sequence::subsequence(best_record.sequence().begin() + best_start, best_record.sequence().begin() + best_end);
+                        std::string best_name = (best_record.id() + '\t' + std::to_string(100 - best_percentage));
+                        add_to(common_out, best_name, best_sub);
+                        if (common.find(record.sequence().size()) == common.end()) common[record.sequence().size()] = {record.sequence()};
+                        else common.at(record.sequence().size()).push_back(record.sequence());
+                    }
+                }
+            }
+        }
+
+        /*void search_common(const std::filesystem::path &dir) {
             seqan3::sequence_file_output f_out{options.output / (dir.filename().string() + "-common.fasta")};
             std::vector<std::vector<typename seqan3::sequence_file_input<traits_t>::record_type>> all_records;
 
@@ -108,8 +171,9 @@ namespace contig_diff {
                     }
                 }
             }
-        }
+        }*/
 
+        // TODO Chercher si les communs de A sont dans B
         void check_common(const std::filesystem::path &dir) {
 
         }
