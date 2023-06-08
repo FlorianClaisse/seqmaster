@@ -24,7 +24,7 @@
 
 #include "contig_diff.h"
 
-
+// TODO: Ajouter les uniques d'un fichier
 // TODO: optimiser pour de la recherche à 100%
 // TODO: Ne pas chercher de duplicata
 // TODO: Ne pas chercher de duplicata à l'intérieur d'un même fichier
@@ -57,14 +57,15 @@ namespace contig_diff {
 
     public:
         std::string search_common(const std::filesystem::path &dir) {
-            directory::create_directories(options.output / (dir.filename()));
-            std::string commonPath{options.output / (dir.filename().string() + "-common.fasta")};
+            directory::create_directories(options.output / ("Specific-" + dir.filename().string()));
+            std::string commonPath{options.output / ("Common-" + dir.filename().string() + ".fasta")};
             seqan3::sequence_file_output common_out{commonPath};
 
             // [{filename, {record}}]
             std::vector<std::pair<std::string, std::vector<record_t>>> all_records;
             directory::decode_all_fasta<traits_t>(dir, all_records);
 
+            std::set<sequence_t> global_common;
             for(unsigned long i = 0; i < all_records.size(); i++) { // Visit all file
                 // [base_sequence, {file index, percentage}]
                 std::map<sequence_t, BestInfo> current_common;
@@ -72,7 +73,7 @@ namespace contig_diff {
                     if (j == i) continue;
 
                     std::vector<std::vector<pair_t>> sources;
-                    generate_test_source(all_records[i].second, current_common, all_records[j].second, sources);
+                    generate_test_source(all_records[i].second, current_common, all_records[j].second, sources, global_common);
 
                     for (auto source: sources) {
                         sequence_t sequence = (get<0>(source[0]));
@@ -109,6 +110,7 @@ namespace contig_diff {
                     std::string best_name = (best_record.first + " -> " + best_record.second[value.second.sequenceIndex].id() + "\t" + std::to_string(100 - value.second.error_percentage));
                     sequence_t best_sub = sequence::subsequence(best_record.second[value.second.sequenceIndex].sequence().begin() + value.second.sequence_start, best_record.second[value.second.sequenceIndex].sequence().begin() + value.second.sequence_end);
                     add_to(common_out, best_name, best_sub);
+                    global_common.insert(value.first);
                 }
             }
 
@@ -117,8 +119,8 @@ namespace contig_diff {
 
         // TODO Chercher si les communs de A sont dans B
         void check_common(const std::filesystem::path &dir, const std::filesystem::path &commonPath) {
-            seqan3::sequence_file_output ab_out{options.output / "a_and_b_common.fasta"};
-            seqan3::sequence_file_output a_not_b_out{options.output / "a_common_not_b.fasta"};
+            seqan3::sequence_file_output ab_out{options.output / ("Common-" + options.inputA.filename().string() + "-" + options.inputB.filename().string() + ".fasta")};
+            seqan3::sequence_file_output a_not_b_out{options.output / ("Common-" + options.inputA.filename().string() + "-not-" + options.inputB.filename().string() + ".fasta")};
 
             std::map<std::string, sequence_t> all_common;
             file::decode_fasta<traits_t>(commonPath, all_common);
@@ -149,7 +151,7 @@ namespace contig_diff {
                     }
                 }
 
-                for (const auto remove: seq_to_remove)
+                for (const auto &remove: seq_to_remove)
                     all_common.erase(remove);
             }
 
@@ -173,12 +175,12 @@ namespace contig_diff {
             output.push_back(output_record);
         }
 
-        /*bool already_found(const sequence_t &sub) const {
-            auto it = common.find(sub.size());
-            if (it == common.end()) return false;
+        bool already_found(const std::set<sequence_t> &common, const sequence_t &sub) const {
+            auto it = common.find(sub);
+            if (it != common.end()) return true;
 
             std::vector<pair_t> source;
-            for (auto &value: it->second)
+            for (auto &value: common)
                 source.push_back(std::tie(value, sub));
 
             long max_error = (sub.size() * options.error_rate) / 100;
@@ -186,12 +188,15 @@ namespace contig_diff {
                 if (abs(res.score()) <= max_error) return true;
 
             return false;
-        }*/
+        }
 
         void generate_test_source(const std::vector<record_t> &records, const std::map<sequence_t, BestInfo> &current_common,
-                                  const std::vector<record_t> &test_records, std::vector<std::vector<pair_t>> &sources) {
+                                  const std::vector<record_t> &test_records, std::vector<std::vector<pair_t>> &sources,
+                                  const std::set<sequence_t> &global_common) {
             if (current_common.empty()) {
                 for (const auto &record: records) {
+                    if (already_found(global_common, record.sequence())) continue;
+
                     std::vector<pair_t> source;
                     for (const auto &test_record: test_records)
                         source.push_back(std::tie(record.sequence(), test_record.sequence()));
