@@ -12,8 +12,6 @@
 #define PROT "prot"
 #define NUCL "nucl"
 
-#define FIND_COMMON "find_common.fasta"
-
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -42,13 +40,14 @@ int contig_diff::check_options(const fs::path &inputA, const fs::path &inputB, c
 
 template<typename traits_t, typename config_t>
 int start_search(const contig_diff::param &options, const config_t &config) {
-
-    seqan3::sequence_file_output f_out{options.output / FIND_COMMON};
-
-    cout << "Start all common in A.\n";
+    
     contig_diff::Search<traits_t, config_t> search(options, config);
 
-    search.search_common(options.inputA);
+    cout << "Start all common in A.\n";
+    std::string commonPath = search.search_common(options.inputA);
+
+    cout << "Check all common inside B\n";
+    search.check_common(options.inputB, commonPath);
 
     return 0;
 }

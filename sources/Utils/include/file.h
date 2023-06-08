@@ -10,6 +10,8 @@
 #include <filesystem>
 #include <vector>
 
+#include <seqan3/io/sequence_file/all.hpp>
+
 
 namespace file {
     std::ofstream* write_open(const std::filesystem::path &path, std::ios_base::openmode mode);
@@ -23,6 +25,20 @@ namespace file {
     bool is_fasta(const std::filesystem::path &path);
 
     int to_fastaline(const std::filesystem::path &filePath);
+
+    template<typename traits_t, typename record_t>
+    void decode_fasta(const std::filesystem::path &path, std::vector<record_t> &all_records) {
+        seqan3::sequence_file_input<traits_t> f_in{path};
+        std::ranges::copy(f_in, std::back_inserter(all_records));
+    }
+
+    template<typename traits_t, typename sequence_t>
+    void decode_fasta(const std::filesystem::path &path, std::map<std::string, sequence_t> &all_records) {
+        seqan3::sequence_file_input<traits_t> f_in{path};
+
+        for (auto record: f_in)
+            all_records[record.id()] = record.sequence();
+    }
 }
 
 #endif //CONTIG_FILE_H

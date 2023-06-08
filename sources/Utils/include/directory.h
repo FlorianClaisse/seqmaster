@@ -24,13 +24,15 @@ namespace directory {
     int to_fastaline(const std::filesystem::path &directoryPath);
 
     template<typename traits_t, typename record_t>
-    void decode_all_fasta(const std::filesystem::path &dir, std::vector<std::vector<record_t>> &all_records) {
+    void decode_all_fasta(const std::filesystem::path &dir, std::vector<std::pair<std::string, std::vector<record_t>>> &all_records) {
         for (const auto &path: std::filesystem::directory_iterator(dir)) {
             if (!file::is_fasta(path)) continue;
             seqan3::sequence_file_input<traits_t> f_in{path};
+
             std::vector<record_t> records;
             std::ranges::copy(f_in, std::back_inserter(records));
-            all_records.push_back(records);
+
+            all_records.push_back(std::make_pair(path.path().filename(), records));
         }
     }
 }

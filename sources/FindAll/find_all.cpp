@@ -58,7 +58,7 @@ int find_all::main(const fs::path &inputA, const fs::path &inputB, const fs::pat
                                              | seqan3::align_cfg::scoring_scheme{seqan3::nucleotide_scoring_scheme{
                                                                                     seqan3::match_score{0},
                                                                                     seqan3::mismatch_score{-1}}}
-                                             | seqan3::align_cfg::parallel{options.threads};
+                                             | seqan3::align_cfg::parallel{static_cast<uint32_t>(options.threads)};
         using traits_t = seqan3::sequence_file_input_default_traits_dna;
         find_all::search<traits_t>(options, config);
     } else {
@@ -70,7 +70,7 @@ int find_all::main(const fs::path &inputA, const fs::path &inputB, const fs::pat
                                              | seqan3::align_cfg::scoring_scheme{seqan3::aminoacid_scoring_scheme{
                 seqan3::match_score{0},
                 seqan3::mismatch_score{-1}}}
-                                               | seqan3::align_cfg::parallel{options.threads};
+                                               | seqan3::align_cfg::parallel{static_cast<uint32_t>(options.threads)};
         using traits_t = seqan3::sequence_file_input_default_traits_aa;
         find_all::search<traits_t>(options, config);
     }
