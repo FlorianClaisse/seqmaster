@@ -23,12 +23,12 @@
 
 #include "contig_diff.h"
 
-// TODO: Ajouter les uniques de chaque fichier
-// TODO: Ajouter les uniques d'un fichier
+// TODO: Ameliorer la recherche des uniques en se basant sur le commun et/ou le calculant en même temps que les communs
 // TODO: Ajouter les specifiques d'un dossier (unique de chaque fichier pas dans l'autre input)
 // TODO: optimiser pour de la recherche à 100%
 // TODO: Ne pas chercher de duplicata à l'intérieur d'un même fichier
 // TODO: Optimiser l'utilisation de la RAM
+// TODO: Stocker les recodrs de chaque dossier de base pour arreter de les recharger
 
 namespace contig_diff {
 
@@ -38,6 +38,7 @@ namespace contig_diff {
         using record_t = typename seqan3::sequence_file_input<traits_t>::record_type;
         using sequence_t = typename seqan3::sequence_file_input<traits_t>::sequence_type;
         using pair_t = typename std::tuple<sequence_t, sequence_t>;
+        using all_records_t = std::vector<std::pair<std::string, std::vector<record_t>>>;
 
     private:
         struct BestInfo {
@@ -51,18 +52,25 @@ namespace contig_diff {
     private:
         contig_diff::param options;
         config_t config;
+        all_records_t A_records;
+        all_records_t B_records; // TODO: Continuer
 
     public:
-        Search(contig_diff::param options, const config_t config): options(std::move(options)), config(std::move(config)) { }
+        Search(contig_diff::param options, const config_t config): options(std::move(options)), config(std::move(config)) {
+            this->A_records = {};
+            directory::decode_all_fasta<traits_t>(this->options.inputA, this->A_records);
+
+            this->B_records = {};
+            directory::decode_all_fasta<traits_t>(this->options.inputB, this->B_records);
+        }
 
     public:
-        std::string search_common(const std::filesystem::path &dir) {
-            std::string commonPath{options.output / ("common_" + dir.filename().string() + ".fasta")};
+        std::string search_common(bool inputA) {
+            std::string commonPath{options.output / ("common_" + (inputA ? options.inputA.filename().string() : options.inputB.filename().string()) + ".fasta")};
             seqan3::sequence_file_output common_out{commonPath};
 
             // [{filename, {record}}]
-            std::vector<std::pair<std::string, std::vector<record_t>>> all_records;
-            directory::decode_all_fasta<traits_t>(dir, all_records);
+            all_records_t &all_records = inputA ? A_records : B_records;
 
             std::set<sequence_t> global_common;
             for(unsigned long i = 0; i < all_records.size(); i++) { // Visit all file
@@ -116,12 +124,11 @@ namespace contig_diff {
             return commonPath;
         }
 
-        void search_unique(const std::filesystem::path &dirPath) {
-            std::filesystem::path dirOut{options.output / ("Unique_" + dirPath.filename().string())};
+        std::string search_unique(bool inputA) {
+            std::filesystem::path dirOut{options.output / ("Unique_" + (inputA ? options.inputA.filename().string() : options.inputB.filename().string()))};
             directory::create_directories(dirOut);
 
-            std::vector<std::pair<std::string, std::vector<record_t>>> all_records;
-            directory::decode_all_fasta<traits_t>(dirPath, all_records);
+            all_records_t &all_records = inputA ? A_records : B_records;
 
             for (const auto &file_records: all_records) {
                 seqan3::sequence_file_output ou_t{dirOut / file_records.first};
@@ -147,6 +154,40 @@ namespace contig_diff {
                     }
                     if (save)
                         file::add_to(ou_t, record.id(), record.sequence());
+                }
+            }
+
+            return dirOut;
+        }
+
+        void search_specific(const std::filesystem::path &uniqueDirPath, bool inputA) {
+            seqan3::sequence_file_output ou_t{options.output / ("specific-" + (inputA ? options.inputB.filename().string() : options.inputA.filename().string()) + ".fasta")};
+
+            std::vector<std::pair<std::string, std::vector<record_t>>> all_unique_records;
+            directory::decode_all_fasta<traits_t>(uniqueDirPath, all_unique_records);
+
+            all_records_t &all_test_records = inputA ? A_records : B_records;
+
+            for (const auto &file_records_unique: all_unique_records) {
+                for (const auto &unique_record: file_records_unique.second) {
+                    long max_error = (unique_record.sequence().size() * options.error_rate) / 100;
+                    bool save{true};
+                    for (const auto &test_file_records: all_test_records) {
+                        std::vector<pair_t> source;
+                        generate_test_source(unique_record.sequence(), test_file_records.second, source);
+
+                        for (const auto &res: seqan3::align_pairwise(source, config)) {
+                            long nb_error = abs(res.score());
+
+                            if (nb_error <= max_error) {
+                                save = false;
+                                break;
+                            }
+                        }
+                        if (!save) break;
+                    }
+                    if (save)
+                        file::add_to(ou_t, file_records_unique.first + " -> " + unique_record.id(), unique_record.sequence());
                 }
             }
         }
