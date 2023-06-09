@@ -10,7 +10,6 @@
 #include <vector>
 #include <ranges>
 #include <unordered_map>
-#include <type_traits>
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/alignment/pairwise/align_pairwise.hpp>
@@ -28,9 +27,8 @@
 // TODO: Ajouter les uniques d'un fichier
 // TODO: Ajouter les specifiques d'un dossier (unique de chaque fichier pas dans l'autre input)
 // TODO: optimiser pour de la recherche à 100%
-// TODO: Ne pas chercher de duplicata
 // TODO: Ne pas chercher de duplicata à l'intérieur d'un même fichier
-// TODO: ...
+// TODO: Optimiser l'utilisation de la RAM
 
 namespace contig_diff {
 
@@ -59,7 +57,6 @@ namespace contig_diff {
 
     public:
         std::string search_common(const std::filesystem::path &dir) {
-            directory::create_directories(options.output / ("specific_" + dir.filename().string()));
             std::string commonPath{options.output / ("common_" + dir.filename().string() + ".fasta")};
             seqan3::sequence_file_output common_out{commonPath};
 
@@ -111,12 +108,47 @@ namespace contig_diff {
                     auto best_record = all_records[value.second.fileIndex];
                     std::string best_name = (best_record.first + " -> " + best_record.second[value.second.sequenceIndex].id() + "\t" + std::to_string(100 - value.second.error_percentage));
                     sequence_t best_sub = sequence::subsequence(best_record.second[value.second.sequenceIndex].sequence().begin() + value.second.sequence_start, best_record.second[value.second.sequenceIndex].sequence().begin() + value.second.sequence_end);
-                    add_to(common_out, best_name, best_sub);
+                    file::add_to(common_out, best_name, best_sub);
                     global_common.insert(value.first);
                 }
             }
 
             return commonPath;
+        }
+
+        void search_unique(const std::filesystem::path &dirPath) {
+            std::filesystem::path dirOut{options.output / ("Unique_" + dirPath.filename().string())};
+            directory::create_directories(dirOut);
+
+            std::vector<std::pair<std::string, std::vector<record_t>>> all_records;
+            directory::decode_all_fasta<traits_t>(dirPath, all_records);
+
+            for (const auto &file_records: all_records) {
+                seqan3::sequence_file_output ou_t{dirOut / file_records.first};
+
+                for (const auto &record: file_records.second) {
+                    long max_error = (record.sequence().size() * options.error_rate) / 100;
+                    bool save{true};
+                    for (const auto &test_file_records: all_records) {
+                        if (file_records.first == test_file_records.first) continue;
+
+                        std::vector<pair_t> source;
+                        generate_test_source(record.sequence(), test_file_records.second, source);
+
+                        for (const auto &res: seqan3::align_pairwise(source, config)) {
+                            long nb_error = abs(res.score());
+
+                            if (nb_error <= max_error) {
+                                save = false;
+                                break;
+                            }
+                        }
+                        if (!save) break;
+                    }
+                    if (save)
+                        file::add_to(ou_t, record.id(), record.sequence());
+                }
+            }
         }
 
         void check_common(const std::filesystem::path &dir, const std::filesystem::path &commonPath) {
@@ -144,7 +176,7 @@ namespace contig_diff {
                             seq_to_remove.push_back(test_common.first);
                             auto error_percentage = ((double)(100 * nb_error)) / test_common.second.size();
                             auto seq = record.second[res.sequence2_id()];
-                            add_to(ab_out,
+                            file::add_to(ab_out,
                                    (record.first + " -> " + seq.id() + "\t" + std::to_string(100 - error_percentage)),
                                    (sequence::subsequence(seq.sequence().begin() + res.sequence2_begin_position(), seq.sequence().begin() + res.sequence2_end_position()))
                                    );
@@ -157,23 +189,13 @@ namespace contig_diff {
             }
 
             for (const auto common: all_common)
-                add_to(a_not_b_out,common.first, common.second);
+                file::add_to(a_not_b_out,common.first, common.second);
         }
 
     private:
         void show_progress(int currentFile, int totalFile, int currentRecord, int totalRecord) const {
             std::cout << "\r\033[K" << "File : " << currentFile << "/" << totalFile << " Finish at : " << (currentRecord * 100 / totalRecord) << "%";
             std::cout.flush();
-        }
-
-        template<typename out_t>
-        void add_to(out_t &output, const std::string &contigName, const sequence_t &sequence) const {
-            using sequence_types = seqan3::type_list<sequence_t, std::string>;
-            using sequence_fields = seqan3::fields<seqan3::field::seq, seqan3::field::id>;
-            using sequence_record_type = seqan3::sequence_record<sequence_types, sequence_fields>;
-
-            sequence_record_type output_record = {sequence, contigName};
-            output.push_back(output_record);
         }
 
         bool already_found(const std::set<sequence_t> &common, const sequence_t &sub) const {

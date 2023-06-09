@@ -49,6 +49,12 @@ int start_search(const contig_diff::param &options, const config_t &config) {
     cout << "Check all common inside B\n";
     search.check_common(options.inputB, commonPath);
 
+    cout << "Find unique inside all A files\n";
+    search.search_unique(options.inputA);
+
+    cout << "Find unique inside all B files\n";
+    search.search_unique(options.inputB);
+
     return 0;
 }
 

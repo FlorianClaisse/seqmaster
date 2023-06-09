@@ -20,7 +20,7 @@ set(CDLIB ContigDiff)
 set(USRC ${ULIB}/directory.cpp ${ULIB}/protein.cpp ${ULIB}/parser.cpp ${ULIB}/file.cpp)
 set(FASRC ${FALIB}/find_all.cpp)
 set(CCSRC ${CCLIB}/condo_count.cpp)
-set(CDSRC ${CDLIB}/contig_diff.cpp ${CDLIB}/cent_percent.cpp ${CDLIB}/other_percent.cpp)
+set(CDSRC ${CDLIB}/contig_diff.cpp)
 
 add_executable(Contig main.cpp ${USRC} ${FASRC} ${CCSRC} ${CDSRC})
 

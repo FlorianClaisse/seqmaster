@@ -39,6 +39,16 @@ namespace file {
         for (auto record: f_in)
             all_records[record.id()] = record.sequence();
     }
+
+    template<typename out_t, typename sequence_t>
+    void add_to(out_t &output, const std::string &contigName, const sequence_t &sequence) {
+        using sequence_types = seqan3::type_list<sequence_t, std::string>;
+        using sequence_fields = seqan3::fields<seqan3::field::seq, seqan3::field::id>;
+        using sequence_record_type = seqan3::sequence_record<sequence_types, sequence_fields>;
+
+        sequence_record_type output_record = {sequence, contigName};
+        output.push_back(output_record);
+    }
 }
 
 #endif //CONTIG_FILE_H
