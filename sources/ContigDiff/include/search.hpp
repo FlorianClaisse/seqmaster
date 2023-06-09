@@ -24,7 +24,9 @@
 
 #include "contig_diff.h"
 
+// TODO: Ajouter les uniques de chaque fichier
 // TODO: Ajouter les uniques d'un fichier
+// TODO: Ajouter les specifiques d'un dossier (unique de chaque fichier pas dans l'autre input)
 // TODO: optimiser pour de la recherche à 100%
 // TODO: Ne pas chercher de duplicata
 // TODO: Ne pas chercher de duplicata à l'intérieur d'un même fichier
@@ -57,8 +59,8 @@ namespace contig_diff {
 
     public:
         std::string search_common(const std::filesystem::path &dir) {
-            directory::create_directories(options.output / ("Specific-" + dir.filename().string()));
-            std::string commonPath{options.output / ("Common-" + dir.filename().string() + ".fasta")};
+            directory::create_directories(options.output / ("specific_" + dir.filename().string()));
+            std::string commonPath{options.output / ("common_" + dir.filename().string() + ".fasta")};
             seqan3::sequence_file_output common_out{commonPath};
 
             // [{filename, {record}}]
@@ -117,10 +119,9 @@ namespace contig_diff {
             return commonPath;
         }
 
-        // TODO Chercher si les communs de A sont dans B
         void check_common(const std::filesystem::path &dir, const std::filesystem::path &commonPath) {
-            seqan3::sequence_file_output ab_out{options.output / ("Common-" + options.inputA.filename().string() + "-" + options.inputB.filename().string() + ".fasta")};
-            seqan3::sequence_file_output a_not_b_out{options.output / ("Common-" + options.inputA.filename().string() + "-not-" + options.inputB.filename().string() + ".fasta")};
+            seqan3::sequence_file_output ab_out{options.output / ("common_" + options.inputA.filename().string() + "_" + options.inputB.filename().string() + ".fasta")};
+            seqan3::sequence_file_output a_not_b_out{options.output / ("common_" + options.inputA.filename().string() + "_not_" + options.inputB.filename().string() + ".fasta")};
 
             std::map<std::string, sequence_t> all_common;
             file::decode_fasta<traits_t>(commonPath, all_common);
