@@ -46,22 +46,22 @@ int start_search(const contig_diff::param &options, const config_t &config) {
     cout << "Start all common in A.\n";
     std::string commonPath = search.search_common(true);
 
-    cout << "Check all common inside B\n";
-    search.check_common(options.inputB, commonPath);
+    cout << "\nCheck all common inside B\n";
+    search.check_common(true, commonPath);
 
-    cout << "Start all common inside B\n";
+    cout << "\nStart all common inside B\n";
     search.search_common(false);
 
-    cout << "Find unique inside all A files\n";
+    cout << "\nFind unique inside all A files\n";
     std::string AuniquePath = search.search_unique(true);
 
-    cout << "Find specific of A\n";
+    cout << "\nFind specific of A\n";
     search.search_specific(AuniquePath, false);
 
-    cout << "Find unique inside all B files\n";
+    cout << "\nFind unique inside all B files\n";
     std::string BuniquePath = search.search_unique(false);
 
-    cout << "Find specific of B\n";
+    cout << "\nFind specific of B\n";
     search.search_specific(BuniquePath, true);
 
 

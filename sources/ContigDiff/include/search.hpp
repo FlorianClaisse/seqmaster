@@ -24,11 +24,9 @@
 #include "contig_diff.h"
 
 // TODO: Ameliorer la recherche des uniques en se basant sur le commun et/ou le calculant en même temps que les communs
-// TODO: Ajouter les specifiques d'un dossier (unique de chaque fichier pas dans l'autre input)
 // TODO: optimiser pour de la recherche à 100%
-// TODO: Ne pas chercher de duplicata à l'intérieur d'un même fichier
 // TODO: Optimiser l'utilisation de la RAM
-// TODO: Stocker les recodrs de chaque dossier de base pour arreter de les recharger
+// TODO: Ajouter un avancement d'etat
 
 namespace contig_diff {
 
@@ -82,12 +80,14 @@ namespace contig_diff {
                     std::vector<std::vector<pair_t>> sources;
                     generate_test_source(all_records[i].second, current_common, all_records[j].second, sources, global_common);
 
-                    for (auto source: sources) {
-                        sequence_t sequence = (get<0>(source[0]));
+                    for (unsigned long s_idx = 0; s_idx < sources.size(); s_idx++) {
+                        show_progress((i + 1), all_records.size(), (s_idx + 1), sources.size());
+
+                        sequence_t sequence = (get<0>(sources[s_idx][0]));
                         long max_error = (sequence.size() * options.error_rate) / 100;
 
                         unsigned long best_nb_error{LONG_MAX}, best_index, best_start, best_end;
-                        for (auto &res: seqan3::align_pairwise(source, config)) {
+                        for (auto &res: seqan3::align_pairwise(sources[s_idx], config)) {
                             long nb_error = abs(res.score());
 
                             if (nb_error <= max_error && nb_error < best_nb_error) {
@@ -114,7 +114,7 @@ namespace contig_diff {
 
                 for (const auto &value: current_common) {
                     auto best_record = all_records[value.second.fileIndex];
-                    std::string best_name = (best_record.first + " -> " + best_record.second[value.second.sequenceIndex].id() + "\t" + std::to_string(100 - value.second.error_percentage));
+                    std::string best_name = (best_record.first + " -> " + best_record.second[value.second.sequenceIndex].id() + "\t" + std::to_string(100 - value.second.error_percentage) + "%");
                     sequence_t best_sub = sequence::subsequence(best_record.second[value.second.sequenceIndex].sequence().begin() + value.second.sequence_start, best_record.second[value.second.sequenceIndex].sequence().begin() + value.second.sequence_end);
                     file::add_to(common_out, best_name, best_sub);
                     global_common.insert(value.first);
@@ -130,17 +130,19 @@ namespace contig_diff {
 
             all_records_t &all_records = inputA ? A_records : B_records;
 
-            for (const auto &file_records: all_records) {
-                seqan3::sequence_file_output ou_t{dirOut / file_records.first};
+            for (unsigned long i = 0; i < all_records.size(); i++) {
+                seqan3::sequence_file_output ou_t{dirOut / all_records[i].first};
 
-                for (const auto &record: file_records.second) {
-                    long max_error = (record.sequence().size() * options.error_rate) / 100;
+                for (unsigned long j = 0; j < all_records[i].second.size(); j++) {
+                    show_progress((i + 1), all_records.size(), (j + 1), all_records[i].second.size());
+
+                    long max_error = (all_records[i].second[j].sequence().size() * options.error_rate) / 100;
                     bool save{true};
                     for (const auto &test_file_records: all_records) {
-                        if (file_records.first == test_file_records.first) continue;
+                        if (all_records[i].first == test_file_records.first) continue;
 
                         std::vector<pair_t> source;
-                        generate_test_source(record.sequence(), test_file_records.second, source);
+                        generate_test_source(all_records[i].second[j].sequence(), test_file_records.second, source);
 
                         for (const auto &res: seqan3::align_pairwise(source, config)) {
                             long nb_error = abs(res.score());
@@ -153,7 +155,7 @@ namespace contig_diff {
                         if (!save) break;
                     }
                     if (save)
-                        file::add_to(ou_t, record.id(), record.sequence());
+                        file::add_to(ou_t, all_records[i].second[j].id(), all_records[i].second[j].sequence());
                 }
             }
 
@@ -168,13 +170,15 @@ namespace contig_diff {
 
             all_records_t &all_test_records = inputA ? A_records : B_records;
 
-            for (const auto &file_records_unique: all_unique_records) {
-                for (const auto &unique_record: file_records_unique.second) {
-                    long max_error = (unique_record.sequence().size() * options.error_rate) / 100;
+            for (unsigned long i = 0; i < all_unique_records.size(); i++) {
+                for (unsigned long j = 0; j < all_unique_records[i].second.size(); j++) {
+                    show_progress((i+1), all_unique_records.size(), (j+1), all_unique_records[i].second.size());
+
+                    long max_error = (all_unique_records[i].second[j].sequence().size() * options.error_rate) / 100;
                     bool save{true};
                     for (const auto &test_file_records: all_test_records) {
                         std::vector<pair_t> source;
-                        generate_test_source(unique_record.sequence(), test_file_records.second, source);
+                        generate_test_source(all_unique_records[i].second[j].sequence(), test_file_records.second, source);
 
                         for (const auto &res: seqan3::align_pairwise(source, config)) {
                             long nb_error = abs(res.score());
@@ -187,20 +191,19 @@ namespace contig_diff {
                         if (!save) break;
                     }
                     if (save)
-                        file::add_to(ou_t, file_records_unique.first + " -> " + unique_record.id(), unique_record.sequence());
+                        file::add_to(ou_t, all_unique_records[i].first + " -> " + all_unique_records[i].second[j].id(), all_unique_records[i].second[j].sequence());
                 }
             }
         }
 
-        void check_common(const std::filesystem::path &dir, const std::filesystem::path &commonPath) {
+        void check_common(bool inputA, const std::filesystem::path &commonPath) {
             seqan3::sequence_file_output ab_out{options.output / ("common_" + options.inputA.filename().string() + "_" + options.inputB.filename().string() + ".fasta")};
             seqan3::sequence_file_output a_not_b_out{options.output / ("common_" + options.inputA.filename().string() + "_not_" + options.inputB.filename().string() + ".fasta")};
 
             std::map<std::string, sequence_t> all_common;
             file::decode_fasta<traits_t>(commonPath, all_common);
 
-            std::vector<std::pair<std::string, std::vector<record_t>>> all_records;
-            directory::decode_all_fasta<traits_t>(dir, all_records);
+            all_records_t all_records = inputA ? B_records : A_records;
 
             for (const auto &record: all_records) {
 
@@ -218,7 +221,7 @@ namespace contig_diff {
                             auto error_percentage = ((double)(100 * nb_error)) / test_common.second.size();
                             auto seq = record.second[res.sequence2_id()];
                             file::add_to(ab_out,
-                                   (record.first + " -> " + seq.id() + "\t" + std::to_string(100 - error_percentage)),
+                                   (record.first + " -> " + seq.id() + "\t" + std::to_string(100 - error_percentage) + "%"),
                                    (sequence::subsequence(seq.sequence().begin() + res.sequence2_begin_position(), seq.sequence().begin() + res.sequence2_end_position()))
                                    );
                         }
@@ -235,7 +238,7 @@ namespace contig_diff {
 
     private:
         void show_progress(int currentFile, int totalFile, int currentRecord, int totalRecord) const {
-            std::cout << "\r\033[K" << "File : " << currentFile << "/" << totalFile << " Finish at : " << (currentRecord * 100 / totalRecord) << "%";
+            std::cout << "\r\033[K" << "\tFile : " << currentFile << "/" << totalFile << " Finish at : " << (currentRecord * 100 / totalRecord) << "%";
             std::cout.flush();
         }
 
