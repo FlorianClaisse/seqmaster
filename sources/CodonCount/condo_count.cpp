@@ -65,7 +65,7 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
         file::write_close(outputFile);
         file::read_close(inputFile);
 
-        ofstream *total_output = file::write_open(options.output.string().append("/" + fileName + "-total.txt"), ios::trunc);
+        ofstream *total_output = file::write_open(output.string().append("/" + fileName + "-total.txt"), ios::trunc);
         (*total_output) << "Codon\tAmino acids\tNumber\tPercentage\n";
 
         for (const auto &key : total_codon) {

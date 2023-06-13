@@ -46,6 +46,6 @@ std::pair<fs::path, fs::path> directory::two_first_fasta(const std::filesystem::
 void directory::to_fastaline(const std::filesystem::path &directoryPath) {
     for (const auto &currentFile : fs::directory_iterator(directoryPath)) {
         if (!file::is_fasta(currentFile)) continue;
-        file::to_fastaline(currentFile)
+        file::to_fastaline(currentFile);
     }
 }

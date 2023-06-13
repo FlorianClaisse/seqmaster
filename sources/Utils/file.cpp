@@ -53,7 +53,7 @@ bool file::is_fasta(const std::filesystem::path &path) {
 }
 
 bool file::is_fastaline(const std::filesystem::path &path) {
-    return have_extension(path.extension().string().erase(0, 1), "fastaline")
+    return have_extension(path.extension().string().erase(0, 1), "fastaline");
 }
 
 fs::path file::to_fastaline(const std::filesystem::path &filePath) {
