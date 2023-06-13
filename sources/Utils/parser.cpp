@@ -131,7 +131,7 @@ int run_codon_count(sharg::parser &parser) {
 
     try {
         parser.parse();
-        return codon_count::main(args.input, args.output); // TODO: Change declaration
+        return codon_count::main(args.input, args.output);
     } catch (sharg::parser_error const &ext) {
         std::cerr << termcolor::red << termcolor::bold
                   << "You managed to find" << CODON_COUNT << ", it was already difficult, wasn't it?.\n"

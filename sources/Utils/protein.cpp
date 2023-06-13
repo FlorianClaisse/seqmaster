@@ -6,7 +6,21 @@
 
 using namespace std;
 
-const unordered_map<char, vector<string>> protein::amino_acide_codon_ref = {
+double protein::rscu(const std::string &codon, const std::map<std::string, int> &total) {
+    vector<string> codons{amino_acide_codon_ref.find(codon_ref_amino_acide.find(codon)->second)->second};
+    size_t n_i = codons.size();
+    int x_i_j = total.find(codon)->second;
+
+    size_t frac = n_i * x_i_j;
+
+    int sum{0};
+    for (int i = 0; i < n_i; i++)
+        sum += total.find(codons[i])->second;
+
+    return (double) frac / (double)sum;
+}
+
+const map<char, vector<string>> protein::amino_acide_codon_ref = {
         {'F', {"TTT", "TTC"}},
         {'L', {"TTA", "TTG", "CTT", "CTC", "CTA", "CTG"}},
         {'S', {"TCT", "TCC", "TCA", "TCG", "AGT", "AGC"}},
@@ -30,7 +44,7 @@ const unordered_map<char, vector<string>> protein::amino_acide_codon_ref = {
         {'G', {"GGT", "GGC", "GGA", "GGG"}},
 };
 
-const unordered_map<string, char> protein::codon_ref_amino_acide = {
+const map<string, char> protein::codon_ref_amino_acide = {
         {"TTT", 'F'}, {"TTC", 'F'},
         {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'}, {"CTA", 'L'}, {"CTG", 'L'},
         {"TCT", 'S'}, {"TCC", 'S'}, {"TCA", 'S'}, {"TCG", 'S'}, {"AGT", 'S'}, {"AGC", 'S'},
@@ -52,4 +66,28 @@ const unordered_map<string, char> protein::codon_ref_amino_acide = {
         {"GAT", 'D'}, {"GAC", 'D'},
         {"GAA", 'E'}, {"GAG", 'E'},
         {"GGT", 'G'}, {"GGC", 'G'}, {"GGA", 'G'}, {"GGG", 'G'},
+};
+
+const std::set<std::string> protein::codon_list = {
+        {"TTT"}, {"TTC"},
+        {"TTA"}, {"TTG"}, {"CTT"}, {"CTC"}, {"CTA"}, {"CTG"},
+        {"TCT"}, {"TCC"}, {"TCA"}, {"TCG"}, {"AGT"}, {"AGC"},
+        {"TAT"}, {"TAC"},
+        {"TAA"}, {"TAG"}, {"TGA"},
+        {"TGT"}, {"TGC"},
+        {"TGG"},
+        {"CCT"}, {"CCC"}, {"CCA"}, {"CCG"},
+        {"CAT"}, {"CAC"},
+        {"CAA"}, {"CAG"},
+        {"CGT"}, {"CGC"}, {"CGA"}, {"CGG"}, {"AGA"}, {"AGG"},
+        {"ATT"}, {"ATC"}, {"ATA"},
+        {"ATG"},
+        {"ACT"}, {"ACC"}, {"ACA"}, {"ACG"},
+        {"AAT"}, {"AAC"},
+        {"AAA"}, {"AAG"},
+        {"GTT"}, {"GTC"}, {"GTA"}, {"GTG"},
+        {"GCT"}, {"GCC"}, {"GCA"}, {"GCG"},
+        {"GAT"}, {"GAC"},
+        {"GAA"}, {"GAG"},
+        {"GGT"}, {"GGC"}, {"GGA"}, {"GGG"},
 };

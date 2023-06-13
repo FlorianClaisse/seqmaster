@@ -9,18 +9,43 @@
 #include "include/condo_count.h"
 
 #include "../Utils/include/directory.h"
+#include "../Utils/include/protein.h"
 
 using namespace std;
 namespace fs = std::filesystem;
 
 namespace codon_count {
-    void init_codon(map<string, pair<int, char>> &codon);
-    void reset_codon(map<string, pair<int, char>> &codon);
+    void init_codon(map<string, int> &codon);
+    void reset_codon(map<string, int> &codon);
+    void init_output(ofstream *output);
+    void add_to(ofstream *output, const map<string, int> &codon, const string &protName, int total);
+}
+
+void codon_count::init_output(std::ofstream *output) {
+    for (const auto &value: protein::codon_ref_amino_acide)
+        (*output) << '\t' << value.first << '/' << value.second;
+
+    (*output) << '\n';
+}
+
+void codon_count::add_to(ofstream *output, const map<string, int> &codon, const string &protName, int total) {
+    (*output) << protName;
+    for (const auto &key: codon)
+        (*output) << '\t' << key.second;
+
+    (*output) << "\nPercentage";
+    for (const auto &key: codon)
+        (*output) << '\t' << (((double)key.second / (double)total) * 100);
+
+    (*output) << "\nRSCU";
+    for (const auto &key: codon)
+        (*output) << '\t' << protein::rscu(key.first, codon);
+    (*output) << "\n\n";
 }
 
 int codon_count::main(const std::filesystem::path &input, const std::filesystem::path &output) {
 
-    map<string, pair<int, char>> codon, total_codon;
+    map<string, int> codon, total_codon;
     init_codon(codon);
     init_codon(total_codon);
 
@@ -32,19 +57,19 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
         string fileName = currentFile.path().stem();
         ifstream *inputFile = file::read_open(currentFile.path());
 
-        ofstream *outputFile = file::write_open(output.string().append("/" + fileName + ".txt"), ios::trunc);
-        (*outputFile) << "Contig Name\tCodon\tAmino acids\tNumber\tPercentage\n";
+        ofstream *outputFile = file::write_open((output / (fileName + ".txt")), ios::trunc);
+        init_output(outputFile);
 
         string lineRead, prot_name;
-        unsigned long total(0), all_total(0);
+        int total(0), all_total(0);
         while (getline((*inputFile), lineRead)) {
             if (lineRead.at(0) == '>') prot_name = lineRead;
             else {
                 for (unsigned long i = 0; i < lineRead.size(); i += 3) {
                     string sub = lineRead.substr(i, 3);
                     if (codon.find(sub) != codon.end()) {
-                        codon[sub].first++;
-                        total_codon[sub].first++;
+                        codon[sub] += 1;
+                        total_codon[sub] += 1;
                         total++;
                         all_total++;
                     } else {
@@ -52,11 +77,8 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
                     }
                 }
 
-                for (const auto &key: codon) {
-                    if (key.second.first != 0) {
-                        (*outputFile) << prot_name << "\t" << key.first << "\t" << key.second.second << "\t" << key.second.first << "\t" << (((double) key.second.first / (double) total) * 100) << "%\n";
-                    }
-                }
+                add_to(outputFile, codon, prot_name, total);
+
                 total = 0;
                 reset_codon(codon);
             }
@@ -66,12 +88,9 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
         file::read_close(inputFile);
 
         ofstream *total_output = file::write_open(output.string().append("/" + fileName + "-total.txt"), ios::trunc);
-        (*total_output) << "Codon\tAmino acids\tNumber\tPercentage\n";
+        init_output(total_output);
 
-        for (const auto &key : total_codon) {
-            if (key.second.first == 0) continue;
-            (*total_output) << key.first << "\t" << key.second.second << "\t" << key.second.first << "\t" << (((double)key.second.first / (double) all_total) * 100) << "%\n";
-        }
+        add_to(total_output, total_codon, fileName, all_total);
 
         file::write_close(total_output);
         reset_codon(total_codon);
@@ -80,30 +99,12 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
     return EXIT_SUCCESS;
 }
 
-void codon_count::init_codon(map<string, pair<int, char>> &codon) {
-    codon["TTT"] = {0, 'F'}; codon["TCT"] = {0, 'S'}; codon["TAT"] = {0, 'Y'}; codon["TGT"] = {0, 'C'};
-    codon["TTC"] = {0, 'F'}; codon["TCC"] = {0, 'S'}; codon["TAC"] = {0, 'Y'}; codon["TGC"] = {0, 'C'};
-    codon["TTA"] = {0, 'L'}; codon["TCA"] = {0, 'S'}; codon["TAA"] = {0, '*'}; codon["TGA"] = {0, '*'};
-    codon["TTG"] = {0, 'L'}; codon["TCG"] = {0, 'S'}; codon["TAG"] = {0, '*'}; codon["TGG"] = {0, 'W'};
-
-    codon["CTT"] = {0, 'L'}; codon["CCT"] = {0, 'P'}; codon["CAT"] = {0, 'H'}; codon["CGT"] = {0, 'R'};
-    codon["CTC"] = {0, 'L'}; codon["CCC"] = {0, 'P'}; codon["CAC"] = {0, 'H'}; codon["CGC"] = {0, 'R'};
-    codon["CTA"] = {0, 'L'}; codon["CCA"] = {0, 'P'}; codon["CAA"] = {0, 'Q'}; codon["CGA"] = {0, 'R'};
-    codon["CTG"] = {0, 'L'}; codon["CCG"] = {0, 'P'}; codon["CAG"] = {0, 'Q'}; codon["CGG"] = {0, 'R'};
-
-    codon["ATT"] = {0, 'I'}; codon["ACT"] = {0, 'T'}; codon["AAT"] = {0, 'N'}; codon["AGT"] = {0, 'S'};
-    codon["ATC"] = {0, 'I'}; codon["ACC"] = {0, 'T'}; codon["AAC"] = {0, 'N'}; codon["AGC"] = {0, 'S'};
-    codon["ATA"] = {0, 'I'}; codon["ACA"] = {0, 'T'}; codon["AAA"] = {0, 'K'}; codon["AGA"] = {0, 'R'};
-    codon["ATG"] = {0, 'M'}; codon["ACG"] = {0, 'T'}; codon["AAG"] = {0, 'K'}; codon["AGG"] = {0, 'R'};
-
-    codon["GTT"] = {0, 'V'}; codon["GCT"] = {0, 'A'}; codon["GAT"] = {0, 'D'}; codon["GGT"] = {0, 'G'};
-    codon["GTC"] = {0, 'V'}; codon["GCC"] = {0, 'A'}; codon["GAC"] = {0, 'D'}; codon["GGC"] = {0, 'G'};
-    codon["GTA"] = {0, 'V'}; codon["GCA"] = {0, 'A'}; codon["GAA"] = {0, 'E'}; codon["GGA"] = {0, 'G'};
-    codon["GTG"] = {0, 'V'}; codon["GCG"] = {0, 'A'}; codon["GAG"] = {0, 'E'}; codon["GGG"] = {0, 'G'};
+void codon_count::init_codon(map<string, int> &codon) {
+    for (const auto &value: protein::codon_list)
+        codon[value] = 0;
 }
 
-void codon_count::reset_codon(map<std::string, pair<int, char>> &codon) {
-    for (auto &value: codon) {
-        value.second.first = 0;
-    }
+void codon_count::reset_codon(map<std::string, int> &codon) {
+    for (auto &value: codon)
+        value.second = 0;
 }
