@@ -43,10 +43,9 @@ std::pair<fs::path, fs::path> directory::two_first_fasta(const std::filesystem::
     return {"", ""}; // Ne doit jamais arriver.
 }
 
-int directory::to_fastaline(const std::filesystem::path &directoryPath) {
+void directory::to_fastaline(const std::filesystem::path &directoryPath) {
     for (const auto &currentFile : fs::directory_iterator(directoryPath)) {
         if (!file::is_fasta(currentFile)) continue;
-        if (file::to_fastaline(currentFile) != EXIT_SUCCESS) return EXIT_FAILURE;
+        file::to_fastaline(currentFile)
     }
-    return EXIT_SUCCESS;
 }

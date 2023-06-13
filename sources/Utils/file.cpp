@@ -52,11 +52,16 @@ bool file::is_fasta(const std::filesystem::path &path) {
     return have_extension(path, seqan3::format_fasta::file_extensions);
 }
 
-int file::to_fastaline(const std::filesystem::path &filePath) {
+bool file::is_fastaline(const std::filesystem::path &path) {
+    return have_extension(path.extension().string().erase(0, 1), "fastaline")
+}
+
+fs::path file::to_fastaline(const std::filesystem::path &filePath) {
     ifstream inputFile;
     inputFile.open(filePath);
 
-    ofstream outputFile(fs::path(filePath).replace_extension("fastaline"), ios::trunc);
+    fs::path newPath{fs::path(filePath).replace_extension("fastaline")};
+    ofstream outputFile(newPath, ios::trunc);
 
     string lineRead;
     bool first(true);
@@ -75,5 +80,6 @@ int file::to_fastaline(const std::filesystem::path &filePath) {
 
     inputFile.close();
     outputFile.close();
-    return EXIT_SUCCESS;
+
+    return newPath;
 }

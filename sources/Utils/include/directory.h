@@ -21,7 +21,7 @@ namespace directory {
     int count_fasta_file(const std::filesystem::path &directoryPath);
     std::pair<std::filesystem::path, std::filesystem::path> two_first_fasta(const std::filesystem::path &directoryPath);
 
-    int to_fastaline(const std::filesystem::path &directoryPath);
+    void to_fastaline(const std::filesystem::path &directoryPath);
 
     template<typename traits_t, typename record_t>
     void decode_all_fasta(const std::filesystem::path &dir, std::vector<std::pair<std::string, std::vector<record_t>>> &all_records) {

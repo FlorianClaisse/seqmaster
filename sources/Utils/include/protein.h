@@ -11,7 +11,9 @@
 
 namespace protein {
     extern const std::unordered_map<char, std::vector<std::string>> amino_acide_codon_ref;
+    extern const std::unordered_map<std::string, char> codon_ref_amino_acide;
     extern const std::vector<std::string> codon_list;
+
 }
 
 #endif //CONTIG_PROTEIN_HPP

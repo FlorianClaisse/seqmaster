@@ -20,19 +20,19 @@ namespace codon_count {
 
 int codon_count::main(const std::filesystem::path &input, const std::filesystem::path &output) {
 
-    /*map<string, pair<int, char>> codon, total_codon;
+    map<string, pair<int, char>> codon, total_codon;
     init_codon(codon);
     init_codon(total_codon);
 
-    if (fasta::directory_to_fastaline(options.input) == EXIT_FAILURE) return EXIT_FAILURE;
+    directory::to_fastaline(input);
 
-    for (const auto &currentFile: fs::directory_iterator(options.input)) {
-        if (!directory::is_fastaline_file(currentFile)) continue;
+    for (const auto &currentFile: fs::directory_iterator(input)) {
+        if (!file::is_fastaline(currentFile)) continue;
 
         string fileName = currentFile.path().stem();
-        ifstream *inputFile = directory::read_open(currentFile.path());
+        ifstream *inputFile = file::read_open(currentFile.path());
 
-        ofstream *outputFile = directory::write_open(options.output.string().append("/" + fileName + ".txt"), ios::trunc);
+        ofstream *outputFile = file::write_open(output.string().append("/" + fileName + ".txt"), ios::trunc);
         (*outputFile) << "Contig Name\tCodon\tAmino acids\tNumber\tPercentage\n";
 
         string lineRead, prot_name;
@@ -62,10 +62,10 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
             }
         }
 
-        directory::write_close(outputFile);
-        directory::read_close(inputFile);
+        file::write_close(outputFile);
+        file::read_close(inputFile);
 
-        ofstream *total_output = directory::write_open(options.output.string().append("/" + fileName + "-total.txt"), ios::trunc);
+        ofstream *total_output = file::write_open(options.output.string().append("/" + fileName + "-total.txt"), ios::trunc);
         (*total_output) << "Codon\tAmino acids\tNumber\tPercentage\n";
 
         for (const auto &key : total_codon) {
@@ -73,11 +73,11 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
             (*total_output) << key.first << "\t" << key.second.second << "\t" << key.second.first << "\t" << (((double)key.second.first / (double) all_total) * 100) << "%\n";
         }
 
-        directory::write_close(total_output);
+        file::write_close(total_output);
         reset_codon(total_codon);
     }
 
-    return EXIT_SUCCESS;*/
+    return EXIT_SUCCESS;
 }
 
 void codon_count::init_codon(map<string, pair<int, char>> &codon) {

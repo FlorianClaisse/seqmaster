@@ -23,8 +23,9 @@ namespace file {
     bool have_extension(const std::filesystem::path &path, const std::string &ext);
     bool have_extension(const std::filesystem::path &path, const std::vector<std::string> &exts);
     bool is_fasta(const std::filesystem::path &path);
+    bool is_fastaline(const std::filesystem::path &path);
 
-    int to_fastaline(const std::filesystem::path &filePath);
+    std::filesystem::path to_fastaline(const std::filesystem::path &filePath);
 
     template<typename traits_t, typename record_t>
     void decode_fasta(const std::filesystem::path &path, std::vector<record_t> &all_records) {

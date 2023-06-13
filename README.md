@@ -1,10 +1,18 @@
-# Contig
+# seqmaster
+
+seqmaster is a program that contains several subroutines.
+The main goal is to do different manipulations on genomic files to extract various relevant information.
+
+Currently seqmaster has 3 sub-programs:
+- findall : Lets you know which contig of an input file A is present in which file of a folder B.
+- codonCount : Allows to calculate the codon bias.
+- contigdiff :  
+
 
 ## Requirements
 
 |         Requirement          | Version  |
 |:----------------------------:|:--------:|
-| [Ubuntu](https://ubuntu.com) | >= 20.04 |
 |  [GCC](https://gcc.gnu.org)  | >= 11.3  |
 |  [CMake](https://cmake.org)  |  >= 3.4  |
 
@@ -18,8 +26,8 @@
 ## Setup
 
 ```bash
-git clone https://github.com/FlorianClaisse/Contig.git
-cd Contig
+git clone https://github.com/FlorianClaisse/seqmaster.git
+cd seqmaster
 git clone --recurse-submodules https://github.com/seqan/seqan3.git
 git clone https://github.com/seqan/sharg-parser.git
 cd sharg-parser

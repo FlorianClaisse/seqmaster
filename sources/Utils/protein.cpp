@@ -27,5 +27,29 @@ const unordered_map<char, vector<string>> protein::amino_acide_codon_ref = {
         {'A', {"GCT", "GCC", "GCA", "GCG"}},
         {'D', {"GAT", "GAC"}},
         {'E', {"GAA", "GAG"}},
-        {'G', {"GGT", "GGC", "GGA"}}
+        {'G', {"GGT", "GGC", "GGA", "GGG"}},
+};
+
+const unordered_map<string, char> protein::codon_ref_amino_acide = {
+        {"TTT", 'F'}, {"TTC", 'F'},
+        {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'}, {"CTA", 'L'}, {"CTG", 'L'},
+        {"TCT", 'S'}, {"TCC", 'S'}, {"TCA", 'S'}, {"TCG", 'S'}, {"AGT", 'S'}, {"AGC", 'S'},
+        {"TAT", 'Y'}, {"TAC", 'Y'},
+        {"TAA", '*'}, {"TAG", '*'}, {"TGA", '*'},
+        {"TGT", 'C'}, {"TGC", 'C'},
+        {"TGG", 'W'},
+        {"CCT", 'P'}, {"CCC", 'P'}, {"CCA", 'P'}, {"CCG", 'P'},
+        {"CAT", 'H'}, {"CAC", 'H'},
+        {"CAA", 'Q'}, {"CAG", 'Q'},
+        {"CGT", 'R'}, {"CGC", 'R'}, {"CGA", 'R'}, {"CGG", 'R'}, {"AGA", 'R'}, {"AGG", 'R'},
+        {"ATT", 'I'}, {"ATC", 'I'}, {"ATA", 'I'},
+        {"ATG", 'W'},
+        /*{'T', {"ACT", "ACC", "ACA", "ACG"}},
+        {'N', {"AAT", "AAC"}},
+        {'K', {"AAA", "AAG"}},
+        {'V', {"GTT", "GTC", "GTA", "GTG"}},
+        {'A', {"GCT", "GCC", "GCA", "GCG"}},
+        {'D', {"GAT", "GAC"}},
+        {'E', {"GAA", "GAG"}},
+        {'G', {"GGT", "GGC", "GGA", "GGG"}},*/
 };
