@@ -20,27 +20,55 @@ using namespace csv;
 namespace fs = std::filesystem;
 
 namespace gene_mut {
-    int check_args(const fs::path &input, const fs::path &groupPath, const fs::path &output);
-    void decode_group_file(const fs::path &groupPath, unordered_map<string, string> &genes);
-}
+    int check_args(const fs::path &input, const fs::path &groupPath, const fs::path &output) {
+        if (!exists(groupPath)) {
+            cout << "Cannot find file at path : " << groupPath << endl;
+            return -1;
+        }
 
-int gene_mut::check_args(const fs::path &input, const fs::path &groupPath, const fs::path &output) {
-    if (!exists(groupPath)) {
-        cout << "Cannot find file at path : " << groupPath << endl;
-        return -1;
+        if (!exists(input)) {
+            cout << "Cannot find file at path : " << input << endl;
+            return -1;
+        }
+
+        if (!directory::create_directories(output)) {
+            cout << "Failed to find or create output directory at path : " << output << endl;
+            return -1;
+        }
+
+        return 0;
     }
 
-    if (!exists(input)) {
-        cout << "Cannot find file at path : " << input << endl;
-        return -1;
+    void decode_group_file(const fs::path &groupPath, unordered_map<string, string> &genes) {
+        CSVReader reader{groupPath.string()};
+
+        vector<string> colName{reader.get_col_names()};
+        for (auto &row: reader) {
+            for (int i = 0; i < row.size(); i++)
+                genes[row[i].get()] = colName[i];
+        }
     }
 
-    if (!directory::create_directories(output)) {
-        cout << "Failed to find or create output directory at path : " << output << endl;
-        return -1;
+    string groupName(const string &gene, const unordered_map<string, string> &genes) {
+        auto fValue = genes.find(gene);
+
+        if (fValue == genes.end()) throw invalid_argument("Can't retrieve : " + gene + " in gene groups");
+        return fValue->second;
     }
 
-    return 0;
+    void reset_rows(const CSVRow &row, unordered_map<string, vector<CSVRow>> &rows, int &pos, const unordered_map<string, string> &genes) {
+        string group_name = groupName(row[ENTRY].get<string>(), genes);
+
+        rows.clear();
+        rows[group_name].push_back(row);
+        pos = row[POS_REF].get<int>();
+    }
+
+    void add_to_rows(const CSVRow &row, unordered_map<string, vector<CSVRow>> &rows, const unordered_map<string, string> &genes) {
+        string group_name = groupName(row[ENTRY].get<string>(), genes);
+
+        rows[group_name].push_back(row);
+    }
 }
 
 int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::path &output) {
@@ -50,31 +78,36 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
     decode_group_file(groupPath, genes);
 
     // [group_name, [gene_name]]
-    unordered_map<string, unordered_set<string>> groups;
+    unordered_map<string, vector<string>> groups;
     for (const auto &value: genes)
-        groups[value.second].insert(value.first);
+        groups[value.second].push_back(value.first);
+
+    // [group_name, output_file]
+    unordered_map<string, CSVWriter<ofstream>> outputs;
+    for (const auto &group: groups) {
+        auto *ou_t = new ofstream{output / (group.first + ".csv")};
+        outputs[group.first] = {(*ou_t)};
+    }
 
     CSVReader reader{input.string()};
-
-    int pos{reader.begin()->operator[](POS_REF).get<int>()};
-    string gene{reader.begin()->operator[](ENTRY).get<string>()};
-    string group{genes.find(gene)->second};
-    size_t groupSize{groups.find(group)->second.size()};
+    // [group_name, [rows]]
+    unordered_map<string, vector<CSVRow>> currentRows;
+    int currentPos{0};
+    reset_rows((*reader.begin()), currentRows, currentPos, genes);
     for (const auto &row: reader) {
-        if (row[POS_REF] == pos) { // same on differente gene
+        if (row[POS_REF].get<int>() == currentPos)
+            add_to_rows(row, currentRows, genes);
+        else {
+            for (const auto &value: currentRows) {
+                auto fValue = groups.find(value.first);
+                if (fValue == groups.end()) throw invalid_argument("Can't find " + value.first + " inside groups");
 
+                if (value.second.size() == fValue->second.size()); // Add to correct output
+            }
+
+            reset_rows(row, currentRows, currentPos, genes);
         }
     }
 
     return 0;
-}
-
-void gene_mut::decode_group_file(const fs::path &groupPath, unordered_map<string, string> &genes) {
-    CSVReader reader{groupPath.string()};
-
-    vector<string> colName{reader.get_col_names()};
-    for (auto &row: reader) {
-        for (int i = 0; i < row.size(); i++)
-            genes[row[i].get()] = colName[i];
-    }
 }
