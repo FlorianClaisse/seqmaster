@@ -14,20 +14,45 @@
 #include "../FindAll/include/find_all.hpp"
 #include "../CodonCount/include/condo_count.h"
 #include "../ContigDiff/include/contig_diff.h"
+#include "../GeneMut/include/gene_mut.hpp"
 
 #define APP_NAME "Contig"
 
 #define FIND_ALL "findall"
 #define CODON_COUNT "codoncount"
 #define CONTIG_DIFF "contigdiff"
+#define GENE_MUT "genemut"
 
 using namespace std;
 namespace fs = std::filesystem;
 
 void initialise_parser(sharg::parser &parser) {
-    parser.info.app_name = APP_NAME;
     parser.info.author = "Florian Claisse";
     parser.info.version = "0.0.1";
+}
+
+// =====================================================================================================================
+// gene mut
+// =====================================================================================================================
+
+int run_gene_mut(sharg::parser &parser) {
+    initialise_parser(parser);
+    fs::path groupPath;
+    parser.add_positional_option(groupPath, sharg::config{.description = "All the paths to the files containing the different stem groups"});
+
+    try {
+        parser.parse();
+        //return gene_mut::main(groupPath);
+    } catch (sharg::parser_error const &ext) {
+        std::cerr << termcolor::red << termcolor::bold
+                  << "You managed to find" << GENE_MUT << ", it was already difficult, wasn't it?.\n"
+                  << termcolor::cyan
+                  << "Look at the help:\n"
+                  << termcolor::reset
+                  << ext.what()
+                  << "\n";
+        return -1;
+    }
 }
 
 // =====================================================================================================================
@@ -215,7 +240,7 @@ int run_find_all(sharg::parser &parser) {
 // main
 // =====================================================================================================================
 int parser::parse(int argc, const char **argv) {
-    sharg::parser top_level_parser{APP_NAME, argc, argv, sharg::update_notifications::on, {FIND_ALL, CODON_COUNT, CONTIG_DIFF}};
+    sharg::parser top_level_parser{APP_NAME, argc, argv, sharg::update_notifications::on, {FIND_ALL, CODON_COUNT, CONTIG_DIFF, GENE_MUT}};
     initialise_parser(top_level_parser);
 
     try {
@@ -240,5 +265,7 @@ int parser::parse(int argc, const char **argv) {
         return run_codon_count(sub_parser);
     } else if (sub_parser.info.app_name == string_view{string{APP_NAME} + "-" + CONTIG_DIFF}) {
         return run_contig_diff(sub_parser);
+    } else if (sub_parser.info.app_name == string_view{string{APP_NAME} + "-" + GENE_MUT}) {
+        return run_gene_mut(sub_parser);
     } else return -1;
 }

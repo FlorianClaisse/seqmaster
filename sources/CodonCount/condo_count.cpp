@@ -122,7 +122,7 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
 }
 
 void codon_count::init_codon(map<string, int> &codon) {
-    for (const auto &value: protein::codon_list)
+    for (auto &value: protein::codon_list)
         codon[value] = 0;
 }
 

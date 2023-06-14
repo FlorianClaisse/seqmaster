@@ -4,3 +4,6 @@
 [submodule "sharg-parser"]
 	path = sharg-parser
 	url = https://github.com/seqan/sharg-parser.git
+[submodule "sources/csv-parser"]
+	path = sources/csv-parser
+	url = https://github.com/vincentlaucsb/csv-parser.git
