@@ -26,13 +26,9 @@ Currently seqmaster has 3 sub-programs:
 ## Setup
 
 ```bash
-git clone https://github.com/FlorianClaisse/seqmaster.git
+git clone --recursive git@github.com:FlorianClaisse/seqmaster.git
 cd seqmaster
-git clone --recurse-submodules https://github.com/seqan/seqan3.git
-git clone https://github.com/seqan/sharg-parser.git
-cd sharg-parser
-git submodule update --init
-cd ..
+git submodule update --init --recursive
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ../sources
