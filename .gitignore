@@ -5,5 +5,3 @@ cmake-build-debug/
 Rapport/*.aux
 Rapport/*.log
 Rapport/*.out
-seqan3/
-sharg-parser/

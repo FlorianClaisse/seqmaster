@@ -19,6 +19,7 @@ namespace codon_count {
     void reset_codon(map<string, int> &codon);
     void init_output(ofstream *output);
     void add_to(ofstream *output, const map<string, int> &codon, const string &protName, int total);
+    int check_args(const fs::path &input, const fs::path &output);
 }
 
 void codon_count::init_output(std::ofstream *output) {
@@ -43,7 +44,23 @@ void codon_count::add_to(ofstream *output, const map<string, int> &codon, const 
     (*output) << "\n\n";
 }
 
+int codon_count::check_args(const fs::path &input, const fs::path &output) {
+    if (!exists(input)) {
+        cout << "Cant't find directory at path : " << input << endl;
+        return -1;
+    }
+
+    if (!directory::create_directories(output)) {
+        cout << "Can't create or find directory at path : " << output << endl;
+        return -1;
+    }
+
+    return 0;
+}
+
 int codon_count::main(const std::filesystem::path &input, const std::filesystem::path &output) {
+
+    if (check_args(input, output) == -1) return -1;
 
     map<string, int> codon, total_codon;
     init_codon(codon);
@@ -94,6 +111,11 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
 
         file::write_close(total_output);
         reset_codon(total_codon);
+    }
+
+    for (const auto &path: fs::directory_iterator(input)) {
+        if (file::is_fastaline(path))
+            remove(path);
     }
 
     return EXIT_SUCCESS;

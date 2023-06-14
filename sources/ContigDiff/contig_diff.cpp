@@ -2,6 +2,10 @@
 // Created by Florian Claisse on 10/05/2023.
 //
 
+#include <cstdint>
+#include <iostream>
+#include <filesystem>
+
 #include "include/contig_diff.h"
 #include "include/search.hpp"
 
@@ -64,12 +68,12 @@ int start_search(const contig_diff::param &options, const config_t &config) {
     cout << "\nFind specific of B\n";
     search.search_specific(BuniquePath, true);
 
-
-
     return 0;
 }
 
 int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads, unsigned long min_size) {
+
+    fs::remove_all(output);
 
     if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
 
