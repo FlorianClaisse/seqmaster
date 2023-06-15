@@ -44,8 +44,12 @@ namespace gene_mut {
 
         vector<string> colName{reader.get_col_names()};
         for (auto &row: reader) {
-            for (int i = 0; i < row.size(); i++)
-                genes[row[i].get()] = colName[i];
+            cout << row.size() << endl;
+            for (int i = 0; i < row.size(); i++) {
+                string value = row[i].get();
+                if (!value.empty())
+                    genes[row[i].get()] = colName[i];
+            }
         }
     }
 
