@@ -20,6 +20,8 @@ using namespace csv;
 namespace fs = std::filesystem;
 
 namespace gene_mut {
+    using MyWriter = DelimWriter<ofstream, ';', '"', true>;
+
     int check_args(const fs::path &input, const fs::path &groupPath, const fs::path &output) {
         if (!exists(groupPath)) {
             cout << "Cannot find file at path : " << groupPath << endl;
@@ -59,12 +61,12 @@ namespace gene_mut {
         return fValue->second;
     }
 
-    void reset_rows(const CSVRow &row, unordered_map<string, vector<CSVRow>> &rows, int &pos, const unordered_map<string, string> &genes) {
+    void reset_rows(const CSVRow &row, unordered_map<string, vector<CSVRow>> &rows, string &pos, const unordered_map<string, string> &genes, const string &ref) {
         string group_name = groupName(row[ENTRY].get<string>(), genes);
 
         rows.clear();
         rows[group_name].push_back(row);
-        pos = row[POS_REF].get<int>();
+        pos = row[ref].get<string>();
     }
 
     void add_to_rows(const CSVRow &row, unordered_map<string, vector<CSVRow>> &rows, const unordered_map<string, string> &genes) {
@@ -80,6 +82,46 @@ namespace gene_mut {
 
             return result;
     }
+
+    void common_algo(CSVReader &reader, const unordered_map<string, string> &genes, const unordered_map<string, vector<string>> &groups, const fs::path &output, const string &ref) {
+        // [group_name, output_file]
+        unordered_map<string, MyWriter*> outputs;
+        for (const auto &group: groups) {
+            auto *ou_t = new ofstream{output / (group.first + ".csv"), ios::trunc};
+            outputs[group.first] = new MyWriter {(*ou_t)};
+            (*outputs[group.first]) << reader.get_col_names();
+        }
+
+        // [group_name, [rows]]
+        unordered_map<string, vector<CSVRow>> currentRows;
+        string currentPos;
+        reset_rows((*reader.begin()), currentRows, currentPos, genes, ref);
+        for (const auto &row: reader) {
+            if (row[ref].get<string>() == currentPos)
+                add_to_rows(row, currentRows, genes);
+            else {
+                for (const auto &value: currentRows) {
+                    auto fValue = groups.find(value.first);
+                    if (fValue == groups.end()) throw invalid_argument("Can't find " + value.first + " inside groups");
+
+                    if (value.second.size() == fValue->second.size()) {
+                        auto sfValue = outputs.find(value.first);
+                        if (sfValue == outputs.end()) throw invalid_argument("Can't find " + value.first + " inside outputs");
+
+                        MyWriter *ou_t{sfValue->second};
+                        for (const auto &write_row: value.second) {
+                            (*ou_t) << row_to_array(write_row);
+                        }
+                    }
+                }
+
+                reset_rows(row, currentRows, currentPos, genes, ref);
+            }
+        }
+
+        for (const auto &value: outputs)
+            delete value.second;
+    }
 }
 
 int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::path &output) {
@@ -93,46 +135,13 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
     for (const auto &value: genes)
         groups[value.second].push_back(value.first);
 
-    CSVReader reader{input.string()};
+    CSVReader reader1{input.string()};
+    directory::create_directories(output / POS_REF);
+    common_algo(reader1, genes, groups, (output / POS_REF), POS_REF);
 
-    // [group_name, output_file]
-    using MyWriter = DelimWriter<ofstream, ';', '"', true>;
-    unordered_map<string, MyWriter*> outputs;
-    for (const auto &group: groups) {
-        auto *ou_t = new ofstream{output / (group.first + ".csv"), ios::trunc};
-        outputs[group.first] = new MyWriter {(*ou_t)};
-        (*outputs[group.first]) << reader.get_col_names();
-    }
-
-    // [group_name, [rows]]
-    unordered_map<string, vector<CSVRow>> currentRows;
-    int currentPos{0};
-    reset_rows((*reader.begin()), currentRows, currentPos, genes);
-    for (const auto &row: reader) {
-        if (row[POS_REF].get<int>() == currentPos)
-            add_to_rows(row, currentRows, genes);
-        else {
-            for (const auto &value: currentRows) {
-                auto fValue = groups.find(value.first);
-                if (fValue == groups.end()) throw invalid_argument("Can't find " + value.first + " inside groups");
-
-                if (value.second.size() == fValue->second.size()) {
-                    auto sfValue = outputs.find(value.first);
-                    if (sfValue == outputs.end()) throw invalid_argument("Can't find " + value.first + " inside outputs");
-
-                    MyWriter *ou_t{sfValue->second};
-                    for (const auto &write_row: value.second) {
-                        (*ou_t) << row_to_array(write_row);
-                    }
-                }
-            }
-
-            reset_rows(row, currentRows, currentPos, genes);
-        }
-    }
-
-    for (const auto &value: outputs)
-        delete value.second;
+    CSVReader reader2{input.string()};
+    directory::create_directories(output / LABEL);
+    common_algo(reader2, genes, groups, (output / LABEL), LABEL);
 
     return 0;
 }
