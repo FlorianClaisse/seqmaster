@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(Contig CXX)
+project(seqmaster CXX)
 
 # add seqan3 to search path
 list (APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../seqan3/build_system")
@@ -27,9 +27,9 @@ set(CCSRC ${CCLIB}/condo_count.cpp)
 set(CDSRC ${CDLIB}/contig_diff.cpp)
 set(GMSRC ${GMLIB}/gene_mut.cpp)
 
-add_executable(Contig main.cpp ${USRC} ${FASRC} ${CCSRC} ${CDSRC} ${GMSRC})
+add_executable(seqmaster main.cpp ${USRC} ${FASRC} ${CCSRC} ${CDSRC} ${GMSRC})
 
-target_link_libraries(Contig seqan3::seqan3 sharg::sharg csv)
+target_link_libraries(seqmaster seqan3::seqan3 sharg::sharg csv)
 
 #EOF
 

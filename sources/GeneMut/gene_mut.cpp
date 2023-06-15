@@ -93,10 +93,11 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
     CSVReader reader{input.string()};
 
     // [group_name, output_file]
-    unordered_map<string, CSVWriter<ofstream>*> outputs;
+    using MyWriter = DelimWriter<ofstream, ';', '"', true>;
+    unordered_map<string, MyWriter*> outputs;
     for (const auto &group: groups) {
         auto *ou_t = new ofstream{output / (group.first + ".csv"), ios::trunc};
-        outputs[group.first] = new CSVWriter<ofstream>{(*ou_t)};
+        outputs[group.first] = new MyWriter {(*ou_t)};
         (*outputs[group.first]) << reader.get_col_names();
     }
 
@@ -116,7 +117,7 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
                     auto sfValue = outputs.find(value.first);
                     if (sfValue == outputs.end()) throw invalid_argument("Can't find " + value.first + " inside outputs");
 
-                    CSVWriter<ofstream> *ou_t{sfValue->second};
+                    MyWriter *ou_t{sfValue->second};
                     for (const auto &write_row: value.second) {
                         (*ou_t) << row_to_array(write_row);
                     }
