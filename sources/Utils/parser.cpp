@@ -37,12 +37,26 @@ void initialise_parser(sharg::parser &parser) {
 
 int run_gene_mut(sharg::parser &parser) {
     initialise_parser(parser);
-    fs::path groupPath;
-    parser.add_positional_option(groupPath, sharg::config{.description = "All the paths to the files containing the different stem groups"});
+    fs::path input, groupPath, output;
+
+    parser.add_option(input, sharg::config{.short_id = 'i',
+                                           .long_id = "input",
+                                           .description = "Path to the input file (CSV file)",
+                                           .required = true});
+
+    parser.add_option(groupPath, sharg::config{.short_id = 'g',
+            .long_id = "group",
+            .description = "Path to the groups file (CSV file)",
+            .required = true});
+
+    parser.add_option(output, sharg::config{.short_id = 'o',
+            .long_id = "output",
+            .description = "Path to the output directory",
+            .required = true});
 
     try {
         parser.parse();
-        //return gene_mut::main(groupPath);
+        return gene_mut::main(input, groupPath, output);
     } catch (sharg::parser_error const &ext) {
         std::cerr << termcolor::red << termcolor::bold
                   << "You managed to find" << GENE_MUT << ", it was already difficult, wasn't it?.\n"

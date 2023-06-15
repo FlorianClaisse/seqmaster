@@ -69,6 +69,14 @@ namespace gene_mut {
 
         rows[group_name].push_back(row);
     }
+
+    vector<string> row_to_array(const CSVRow &row) {
+        vector<string> result;
+        for (auto &field: row)
+            result.push_back(field.get<string>());
+
+            return result;
+    }
 }
 
 int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::path &output) {
@@ -82,14 +90,16 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
     for (const auto &value: genes)
         groups[value.second].push_back(value.first);
 
+    CSVReader reader{input.string()};
+
     // [group_name, output_file]
-    unordered_map<string, CSVWriter<ofstream>> outputs;
+    unordered_map<string, CSVWriter<ofstream>*> outputs;
     for (const auto &group: groups) {
-        auto *ou_t = new ofstream{output / (group.first + ".csv")};
-        outputs[group.first] = {(*ou_t)};
+        auto *ou_t = new ofstream{output / (group.first + ".csv"), ios::trunc};
+        outputs[group.first] = new CSVWriter<ofstream>{(*ou_t)};
+        (*outputs[group.first]) << reader.get_col_names();
     }
 
-    CSVReader reader{input.string()};
     // [group_name, [rows]]
     unordered_map<string, vector<CSVRow>> currentRows;
     int currentPos{0};
@@ -102,12 +112,23 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
                 auto fValue = groups.find(value.first);
                 if (fValue == groups.end()) throw invalid_argument("Can't find " + value.first + " inside groups");
 
-                if (value.second.size() == fValue->second.size()); // Add to correct output
+                if (value.second.size() == fValue->second.size()) {
+                    auto sfValue = outputs.find(value.first);
+                    if (sfValue == outputs.end()) throw invalid_argument("Can't find " + value.first + " inside outputs");
+
+                    CSVWriter<ofstream> *ou_t{sfValue->second};
+                    for (const auto &write_row: value.second) {
+                        (*ou_t) << row_to_array(write_row);
+                    }
+                }
             }
 
             reset_rows(row, currentRows, currentPos, genes);
         }
     }
+
+    for (const auto &value: outputs)
+        delete value.second;
 
     return 0;
 }
