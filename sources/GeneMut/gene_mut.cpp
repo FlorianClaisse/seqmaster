@@ -113,7 +113,7 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
                 auto fValue = groups.find(value.first);
                 if (fValue == groups.end()) throw invalid_argument("Can't find " + value.first + " inside groups");
 
-                if (value.second.size() == fValue->second.size()) {
+                if (value.second.size() >= fValue->second.size()) {
                     auto sfValue = outputs.find(value.first);
                     if (sfValue == outputs.end()) throw invalid_argument("Can't find " + value.first + " inside outputs");
 
