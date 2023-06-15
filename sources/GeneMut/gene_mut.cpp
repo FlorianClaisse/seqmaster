@@ -44,7 +44,6 @@ namespace gene_mut {
 
         vector<string> colName{reader.get_col_names()};
         for (auto &row: reader) {
-            cout << row.size() << endl;
             for (int i = 0; i < row.size(); i++) {
                 string value = row[i].get();
                 if (!value.empty())
@@ -117,7 +116,7 @@ int gene_mut::main(const fs::path &input, const fs::path &groupPath, const fs::p
                 auto fValue = groups.find(value.first);
                 if (fValue == groups.end()) throw invalid_argument("Can't find " + value.first + " inside groups");
 
-                if (value.second.size() >= fValue->second.size()) {
+                if (value.second.size() == fValue->second.size()) {
                     auto sfValue = outputs.find(value.first);
                     if (sfValue == outputs.end()) throw invalid_argument("Can't find " + value.first + " inside outputs");
 
