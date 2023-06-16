@@ -98,7 +98,7 @@ namespace find_all {
         std::vector<record_type> records;
         std::ranges::copy(fin, back_inserter(records));
 
-        std::ofstream *fout = start_output(options.output / "output.txt");
+        std::ofstream *fout = start_output(options.output / "output.tsv");
         for (const auto &test_path : std::filesystem::directory_iterator(options.inputB)) {
             if (!file::is_fasta(test_path)) continue;
 
