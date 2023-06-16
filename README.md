@@ -18,10 +18,11 @@ Currently seqmaster has 3 sub-programs:
 
 ## Dependencies
 
-|                         Libs                          | Version  |
-|:-----------------------------------------------------:|:--------:|
-| [seqan3](https://github.com/seqan/seqan3/tree/master) | >= 1.1.0 |
-| [sharg-parser](https://github.com/seqan/sharg-parser) | >= 3.2.0 |
+|                           Libs                            | Version  |
+|:---------------------------------------------------------:|:--------:|
+|   [seqan3](https://github.com/seqan/seqan3/tree/master)   | >= 1.1.0 |
+|   [sharg-parser](https://github.com/seqan/sharg-parser)   | >= 3.2.0 |
+| [csv-parser](https://github.com/vincentlaucsb/csv-parser) | >= 2.1.3 |
 
 ## Setup
 
@@ -38,17 +39,17 @@ make
 ## Find All
 
 ```bash
-./Contig --findall --inputA <path> --inputB <path> --type <nucl/prot> --output <path> [--accept <percentage>] [--threads <number>]
+./seqmaster findall -A <path> -tB <path> -t <nucl/prot> -o <path> [--accept <percentage>] [--threads <number>]
 ```
 
 À partir d'un fichier d'entrée au format fasta détermine qu'elles Contig sont présent dans chaque fichier du dossier B.
 
 Au niveau des paramètres de la ligne de commande, il y a :
 
-- `--inputA` Le chemin vers le **fichier** (format fasta) contenant les contigs à trouver.
-- `--inputB` Le chemin vers le **dossier** ou se trouve les fichiers à tester.
-- `--type` Le type d'élément contenue dans les fichiers (nucl ou prot).
-- `--output` Le chemin vers le **dossier** qui va contenir les fichiers de sortie.
+- `-A --inputA` Le chemin vers le **fichier** (format fasta) contenant les contigs à trouver.
+- `-B --inputB` Le chemin vers le **dossier** ou se trouve les fichiers à tester.
+- `-t --type` Le type d'élément contenue dans les fichiers (nucl ou prot).
+- `-o --output` Le chemin vers le **dossier** qui va contenir les fichiers de sortie.
 - `--accept` Le pourcentage d'acceptation pour qu'un élément soit considéré comme reconnu par defaut il vaut 100%.
 - `--threads` Le nombre de threads que le programme peut utiliser par défaut il vaut 4.
 
@@ -86,7 +87,7 @@ contigValue
 ## Codon Count
 
 ```bash
-./Contig --codonCount --inputA <path> --output <path>
+./seqmaster codonCount -A <path> -o <path>
 ```
 
 À partir d'un fichier d'entrée, le programme va compter le nombre de chaque codon présent dans chaque
@@ -105,4 +106,16 @@ Contig Name     Codon   Number  Percentage
 >Contig_1       ATT     3       25%
 >Contig_2       AAA     12      50%
 >Contig_2       TGT     12      50%
+```
+
+## Contig Diff
+
+```bash
+./seqmaster contigdiff -A <path> -B <path> -t <nucl/prot> -o <path> --accept <percentage> --threads <num>
+```
+
+## Gene Mut
+
+```bash
+./seqmaster genemut -i <path> -g <path> -o <path>
 ```
