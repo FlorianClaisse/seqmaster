@@ -55,6 +55,7 @@ namespace find_all {
         using pair_t = decltype(std::tie(records[0].sequence(), records[0].sequence()));
         for (const auto &record : records) {
             std::vector<pair_t> source;
+            source.reserve(test_records.size());
             for (long i = 0; i < test_records.size(); i++) {
                 source.push_back(std::tie(record.sequence(), test_records[i].sequence()));
             }
@@ -72,8 +73,9 @@ namespace find_all {
             if (best_score != LONG_MIN) {
                 double error = ((double)(100 * abs(best_score))) / record.sequence().size();
                 if (error <= options.error_rate) {
+                    std::cout << "add :" + std::to_string(100 - error) + "%" << std::endl;
                     results[record.id()] = (100 - error);
-                    std::string contigName{test_records[index].id() + " -> " + record.id() + " -> " + std::to_string(100 - error) + "%"};
+                    std::string contigName{path.stem().string() + " -> " + test_records[index].id() + " -> " + record.id() + " -> " + std::to_string(100 - error) + "%"};
                     if (options.nucl) generate_output(output, contigName, get_subsequence(test_records[index].sequence().begin() + best_start, test_records[index].sequence().begin() + best_end));
                     else generate_output(output, contigName, test_records[index].sequence());
                 }
