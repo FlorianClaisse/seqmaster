@@ -22,8 +22,10 @@ int directory::create_directories(const std::filesystem::path &path) {
 
 int directory::count_file(const std::filesystem::path &dirPath) {
     int cpt;
-    for (const auto &v: fs::directory_iterator{dirPath})
-        cpt++;
+    for (const auto &v: fs::directory_iterator{dirPath}) {
+        if (fs::is_regular_file(v))
+            cpt++;
+    }
 
     return cpt;
 }

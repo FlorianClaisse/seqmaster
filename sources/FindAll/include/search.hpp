@@ -110,8 +110,9 @@ namespace find_all {
         int nb_files{directory::count_file(options.inputB)};
         int current{0};
         for (const auto &test_path : std::filesystem::directory_iterator(options.inputB)) {
-            if (!file::is_fasta(test_path)) continue;
             show_progress(current + 1, nb_files);
+            if (!file::is_fasta(test_path)) continue;
+
             std::unordered_map<std::string, double> results = search_in<traits_t>(test_path, records, options, config);
             if (!results.empty()) {
                 (*fout) << test_path.path().filename();
@@ -120,6 +121,7 @@ namespace find_all {
                 }
                 (*fout) << "\n";
             }
+            current++;
         }
 
         file::write_close(fout);
