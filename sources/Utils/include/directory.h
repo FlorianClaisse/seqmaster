@@ -18,6 +18,7 @@
 namespace directory {
     int create_directories(const std::filesystem::path &path);
 
+    int count_file(const std::filesystem::path &dirPath);
     int count_fasta_file(const std::filesystem::path &directoryPath);
     std::pair<std::filesystem::path, std::filesystem::path> two_first_fasta(const std::filesystem::path &directoryPath);
 

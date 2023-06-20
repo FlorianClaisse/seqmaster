@@ -18,10 +18,16 @@
 #include <seqan3/alphabet/all.hpp>
 
 #include "../../Utils/include/file.h"
+#include "../../Utils/include/directory.h"
 
 #include "find_all.hpp"
 
 namespace find_all {
+    void show_progress(int currentFile, int totalFile) {
+        std::cout << "\r\033[K" << "\tFile : " << currentFile << "/" << totalFile;
+        std::cout.flush();
+    }
+
     template<typename sequence_t>
     std::vector<typename std::iterator_traits<sequence_t>::value_type>get_subsequence(sequence_t begin, sequence_t end) {
         using value_type = typename std::iterator_traits<sequence_t>::value_type;
@@ -73,7 +79,6 @@ namespace find_all {
             if (best_score != LONG_MIN) {
                 double error = ((double)(100 * abs(best_score))) / record.sequence().size();
                 if (error <= options.error_rate) {
-                    std::cout << "add :" + std::to_string(100 - error) + "%" << std::endl;
                     results[record.id()] = (100 - error);
                     std::string contigName{path.stem().string() + " -> " + test_records[index].id() + " -> " + record.id() + " -> " + std::to_string(100 - error) + "%"};
                     if (options.nucl) generate_output(output, contigName, get_subsequence(test_records[index].sequence().begin() + best_start, test_records[index].sequence().begin() + best_end));
@@ -101,9 +106,12 @@ namespace find_all {
         std::ranges::copy(fin, back_inserter(records));
 
         std::ofstream *fout = start_output(options.output / "output.tsv");
+
+        int nb_files{directory::count_file(options.inputB)};
+        int current{0};
         for (const auto &test_path : std::filesystem::directory_iterator(options.inputB)) {
             if (!file::is_fasta(test_path)) continue;
-
+            show_progress(current + 1, nb_files);
             std::unordered_map<std::string, double> results = search_in<traits_t>(test_path, records, options, config);
             if (!results.empty()) {
                 (*fout) << test_path.path().filename();

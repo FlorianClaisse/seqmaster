@@ -20,6 +20,14 @@ int directory::create_directories(const std::filesystem::path &path) {
     return true;
 }
 
+int directory::count_file(const std::filesystem::path &dirPath) {
+    int cpt;
+    for (const auto &v: fs::directory_iterator{dirPath})
+        cpt++;
+
+    return cpt;
+}
+
 int directory::count_fasta_file(const std::filesystem::path &directoryPath) {
     int cpt(0);
     for(const auto &path: fs::directory_iterator(directoryPath)) {

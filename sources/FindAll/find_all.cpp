@@ -40,6 +40,9 @@ int find_all::check_options(const fs::path &inputA, const fs::path &inputB, cons
     if (!is_directory(inputB)) return error_message("Input B is not a folder or does not exist. Try again the next one is the right one.\n");
     if(!directory::create_directories(output)) return error_message("Unable to find/create the output folder are you sure you have given a valid path.\n");
 
+    for (const auto &filePath: fs::directory_iterator(output))
+        fs::remove_all(filePath);
+
     return 0;
 }
 
