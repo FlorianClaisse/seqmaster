@@ -77,6 +77,9 @@ int contig_diff::main(const fs::path &inputA, const fs::path &inputB, const fs::
 
     if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
 
+    directory::clean_fastas(inputA);
+    directory::clean_fastas(inputB);
+
     int nb_fasta = directory::count_fasta_file(inputA);
     if (nb_fasta < 2) {
         cout << "Il faut au minimum deux fichiers de type fasta dans le dossier A.\n";

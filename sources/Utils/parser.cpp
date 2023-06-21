@@ -15,6 +15,7 @@
 #include "../CodonCount/include/condo_count.h"
 #include "../ContigDiff/include/contig_diff.h"
 #include "../GeneMut/include/gene_mut.hpp"
+#include "../ContigOrdered/include/contigOrdered.hpp"
 
 #define APP_NAME "Contig"
 
@@ -22,6 +23,7 @@
 #define CODON_COUNT "codoncount"
 #define CONTIG_DIFF "contigdiff"
 #define GENE_MUT "genemut"
+#define CONTIG_ORDERED "contigordered"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -29,6 +31,39 @@ namespace fs = std::filesystem;
 void initialise_parser(sharg::parser &parser) {
     parser.info.author = "Florian Claisse";
     parser.info.version = "0.0.1";
+}
+
+// =====================================================================================================================
+// gene mut
+// =====================================================================================================================
+
+int run_contig_ordered(sharg::parser &parser) {
+    initialise_parser(parser);
+    fs::path input, output;
+
+    parser.add_option(input, sharg::config{.short_id = 'i',
+            .long_id = "input",
+            .description = "Path to the input folder",
+            .required = true});
+
+    parser.add_option(output, sharg::config{.short_id = 'o',
+            .long_id = "output",
+            .description = "Path to the output folder",
+            .required = true});
+
+    try {
+        parser.parse();
+        return contig_ordered::main(input, output);
+    } catch (sharg::parser_error const &ext) {
+        std::cerr << termcolor::red << termcolor::bold
+                  << "You managed to find" << CONTIG_ORDERED << ", it was already difficult, wasn't it?.\n"
+                  << termcolor::cyan
+                  << "Look at the help:\n"
+                  << termcolor::reset
+                  << ext.what()
+                  << "\n";
+        return -1;
+    }
 }
 
 // =====================================================================================================================
@@ -254,7 +289,7 @@ int run_find_all(sharg::parser &parser) {
 // main
 // =====================================================================================================================
 int parser::parse(int argc, const char **argv) {
-    sharg::parser top_level_parser{APP_NAME, argc, argv, sharg::update_notifications::on, {FIND_ALL, CODON_COUNT, CONTIG_DIFF, GENE_MUT}};
+    sharg::parser top_level_parser{APP_NAME, argc, argv, sharg::update_notifications::on, {FIND_ALL, CODON_COUNT, CONTIG_DIFF, GENE_MUT, CONTIG_ORDERED}};
     initialise_parser(top_level_parser);
 
     try {
@@ -281,5 +316,7 @@ int parser::parse(int argc, const char **argv) {
         return run_contig_diff(sub_parser);
     } else if (sub_parser.info.app_name == string_view{string{APP_NAME} + "-" + GENE_MUT}) {
         return run_gene_mut(sub_parser);
+    } else if (sub_parser.info.app_name == string_view{string{APP_NAME} + "-" + CONTIG_ORDERED}) {
+        return run_contig_ordered(sub_parser);
     } else return -1;
 }

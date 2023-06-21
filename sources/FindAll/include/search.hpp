@@ -125,6 +125,7 @@ namespace find_all {
         }
 
         file::write_close(fout);
+        std::cout << '\n';
         return 0;
     }
 }

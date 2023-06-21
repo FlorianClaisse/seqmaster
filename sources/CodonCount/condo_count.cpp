@@ -65,6 +65,8 @@ int codon_count::main(const std::filesystem::path &input, const std::filesystem:
 
     if (check_args(input, output) == -1) return -1;
 
+    directory::clean_fastas(input);
+
     map<string, int> codon, total_codon;
     init_codon(codon);
     init_codon(total_codon);

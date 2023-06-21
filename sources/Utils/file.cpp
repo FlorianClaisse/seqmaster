@@ -57,6 +57,25 @@ bool file::is_fastaline(const std::filesystem::path &path) {
     return have_extension(path, ".fastaline");
 }
 
+void file::clean(const std::filesystem::path &path) {
+    ifstream in_f{path};
+    assert_message(in_f.is_open(), "Impossible d'ouvrir le fichier");
+
+    string line, content;
+    while(getline(in_f, line))
+        content += line + '\n';
+
+    size_t pos;
+    while((pos = content.find('\r')) != string::npos)
+        content.erase(pos, 1);
+
+    in_f.close();
+
+    ofstream ou_f{path, ios::trunc};
+    ou_f << content;
+    ou_f.close();
+}
+
 fs::path file::to_fastaline(const std::filesystem::path &filePath) {
     ifstream inputFile;
     inputFile.open(filePath);

@@ -13,6 +13,7 @@
 
 #include "../Utils/include/termcolor.hpp"
 #include "../Utils/include/directory.h"
+#include "../Utils/include/file.h"
 
 #define NUCL "nucl"
 #define PROT "prot"
@@ -49,6 +50,9 @@ int find_all::check_options(const fs::path &inputA, const fs::path &inputB, cons
 int find_all::main(const fs::path &inputA, const fs::path &inputB, const fs::path &output, const string &type, int accept, int threads) {
 
     if (check_options(inputA, inputB, output, type, accept, threads) != 0) return -1;
+
+    file::clean(inputA);
+    directory::clean_fastas(inputB);
 
     param options = {inputA, inputB, output, (type == NUCL), (100 - accept), threads};
 

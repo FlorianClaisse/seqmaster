@@ -27,6 +27,8 @@ namespace file {
 
     std::filesystem::path to_fastaline(const std::filesystem::path &filePath);
 
+    void clean(const std::filesystem::path &path);
+
     template<typename traits_t, typename record_t>
     void decode_fasta(const std::filesystem::path &path, std::vector<record_t> &all_records) {
         seqan3::sequence_file_input<traits_t> f_in{path};

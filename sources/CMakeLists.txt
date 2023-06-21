@@ -20,14 +20,16 @@ set(FALIB FindAll)
 set(CCLIB CodonCount)
 set(CDLIB ContigDiff)
 set(GMLIB GeneMut)
+set(COLIB ContigOrdered)
 
 set(USRC ${ULIB}/directory.cpp ${ULIB}/protein.cpp ${ULIB}/parser.cpp ${ULIB}/file.cpp)
 set(FASRC ${FALIB}/find_all.cpp)
 set(CCSRC ${CCLIB}/condo_count.cpp)
 set(CDSRC ${CDLIB}/contig_diff.cpp)
 set(GMSRC ${GMLIB}/gene_mut.cpp)
+set(COSRC ${COLIB}/contigOrdered.cpp)
 
-add_executable(seqmaster main.cpp ${USRC} ${FASRC} ${CCSRC} ${CDSRC} ${GMSRC})
+add_executable(seqmaster main.cpp ${USRC} ${FASRC} ${CCSRC} ${CDSRC} ${GMSRC} ${COSRC})
 
 target_link_libraries(seqmaster seqan3::seqan3 sharg::sharg csv)
 

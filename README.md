@@ -6,7 +6,8 @@ The main goal is to do different manipulations on genomic files to extract vario
 Currently seqmaster has 3 sub-programs:
 - findall : Lets you know which contig of an input file A is present in which file of a folder B.
 - codonCount : Allows to calculate the codon bias.
-- contigdiff :  
+- contigdiff :
+- contigOrdered :
 
 
 ## Requirements
@@ -118,4 +119,8 @@ Contig Name     Codon   Number  Percentage
 
 ```bash
 ./seqmaster genemut -i <path> -g <path> -o <path>
+```
+
+```bash
+./seqmaster contigordered -i <path> -o <path>
 ```

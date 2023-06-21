@@ -21,6 +21,7 @@ namespace directory {
     int count_file(const std::filesystem::path &dirPath);
     int count_fasta_file(const std::filesystem::path &directoryPath);
     std::pair<std::filesystem::path, std::filesystem::path> two_first_fasta(const std::filesystem::path &directoryPath);
+    void clean_fastas(const std::filesystem::path &dirPath);
 
     void to_fastaline(const std::filesystem::path &directoryPath);
 
