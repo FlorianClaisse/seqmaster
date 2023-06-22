@@ -40,17 +40,19 @@ namespace find_all {
     }
 
     template<typename out_t, typename sequence_t>
-    void generate_output(out_t &output, const std::string &contigName, const sequence_t &sequence) {
+    void generate_output(out_t &output, const std::string &contigName, const sequence_t &sequence, out_t &out_cat, const std::string &filename) {
         using sequence_types = seqan3::type_list<sequence_t, std::string>;
         using sequence_fields = seqan3::fields<seqan3::field::seq, seqan3::field::id>;
         using sequence_record_type = seqan3::sequence_record<sequence_types, sequence_fields>;
 
         sequence_record_type output_record = {sequence, contigName};
         output.push_back(output_record);
+        output_record = {sequence, std::string{filename} + " -> " + contigName};
+        out_cat.push_back(output_record);
     }
 
-    template<typename traits_t, typename config_t, typename record_t>
-    std::unordered_map<std::string, double> search_in(const std::filesystem::path &path, const std::vector<record_t> &records, const param &options, const config_t &config) {
+    template<typename traits_t, typename config_t, typename record_t, typename out_t>
+    std::unordered_map<std::string, double> search_in(const std::filesystem::path &path, const std::vector<record_t> &records, const param &options, const config_t &config, out_t &out_cat) {
         seqan3::sequence_file_output output{options.output / path.filename()};
         seqan3::sequence_file_input<traits_t> test_in{path};
 
@@ -80,9 +82,9 @@ namespace find_all {
                 double error = ((double)(100 * abs(best_score))) / record.sequence().size();
                 if (error <= options.error_rate) {
                     results[record.id()] = (100 - error);
-                    std::string contigName{path.stem().string() + " -> " + test_records[index].id() + " -> " + record.id() + " -> " + std::to_string(100 - error) + "%"};
-                    if (options.nucl) generate_output(output, contigName, get_subsequence(test_records[index].sequence().begin() + best_start, test_records[index].sequence().begin() + best_end));
-                    else generate_output(output, contigName, test_records[index].sequence());
+                    std::string contigName{test_records[index].id() + " -> " + record.id() + " -> " + std::to_string(100 - error) + "%"};
+                    if (options.nucl) generate_output(output, contigName, get_subsequence(test_records[index].sequence().begin() + best_start, test_records[index].sequence().begin() + best_end), out_cat, path.stem());
+                    else generate_output(output, contigName, test_records[index].sequence(), out_cat, path.stem());
                 }
             }
         }
@@ -106,6 +108,7 @@ namespace find_all {
         std::ranges::copy(fin, back_inserter(records));
 
         std::ofstream *fout = start_output(options.output / "output.tsv");
+        seqan3::sequence_file_output out_cat{options.output / "concat.fasta"};
 
         int nb_files{directory::count_file(options.inputB)};
         int current{0};
@@ -113,12 +116,11 @@ namespace find_all {
             show_progress(current + 1, nb_files);
             if (!file::is_fasta(test_path)) continue;
 
-            std::unordered_map<std::string, double> results = search_in<traits_t>(test_path, records, options, config);
+            std::unordered_map<std::string, double> results = search_in<traits_t>(test_path, records, options, config, out_cat);
             if (!results.empty()) {
                 (*fout) << test_path.path().filename();
-                for (const auto &value : results) {
+                for (const auto &value : results)
                     (*fout) << "\t" << value.first << " -> " << value.second << "%";
-                }
                 (*fout) << "\n";
             }
             current++;
